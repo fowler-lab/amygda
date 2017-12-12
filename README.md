@@ -130,7 +130,7 @@ To delete all the output files, thereby returning sample-images/ to its clean st
 	
 ## Citing
 
-Details of how to cite the accompanying paper will be added when they are available. Please check back. 
+A [preprint](https://doi.org/10.1101/229427) has been deposited in the biorXiv and the manuscript is has been submitted to a peer-reviewed journal. Until it is accepted, please cite the biorXiv paper. The final citation will be added here when it is known.
 
 ## Licence
 
