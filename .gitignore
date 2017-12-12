@@ -1,0 +1,9 @@
+*~
+*.pyc
+*processed.png
+*filtered.png
+*.npz
+*json
+*json.proxy
+*mics.txt
+*DS_Store
