@@ -1,4 +1,4 @@
-#Automated Mycobacterial Growth Detection Algorithm (AMyGDA)
+# Automated Mycobacterial Growth Detection Algorithm (AMyGDA)
 
 This is a python module that takes a photograph of a 96 well plate and assesses each well for the presence of bacterial growth (here *Mycobacterial tuberculosis*). Since each well contains a different concentration of a different antibiotic, the minimum inhibitory concentration, as used in clinical microbiology, can be determined.
 
