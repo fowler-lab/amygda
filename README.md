@@ -134,7 +134,7 @@ A [preprint](https://doi.org/10.1101/229427) is available from the biorXiv and t
 
 	Automated detection of Mycobacterial growth on 96-well plates for rapid and accurate Tuberculosis drug susceptibility testing
 	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Timothy M Walker, Esther Robinson, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
-	bioRxiv 229427; doi: [https://doi.org/10.1101/229427](https://doi.org/10.1101/229427)	
+	bioRxiv 229427; doi: https://doi.org/10.1101/229427
 
 ## Licence
 
