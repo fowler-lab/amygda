@@ -476,7 +476,7 @@ class PlateMeasurement(Treant):
         OUTPUT = open(filename,'w')
 
         for field in sorted(self.categories.keys()):
-            print >> OUTPUT,  "%28s %20s" % (field, self.categories[field])
+            OUTPUT.write("%28s %20s" % (field, self.categories[field]))
 
         OUTPUT.close()
 
@@ -499,11 +499,11 @@ class PlateMeasurement(Treant):
         # verify that the estimated dimensions of the wells are within 5% of one another
         if estimate_well_x > estimate_well_y:
             if estimate_well_x > 1.05*estimate_well_y:
-                print self.image_name+" has estimated well dimensions more than 10% different - check the image"
+                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
         else:
             if estimate_well_y > 1.05*estimate_well_x:
-                print self.image_name+" has estimated well dimensions more than 10% different - check the image"
+                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
 
         # now estimate the radius as the mean of half the estimated well dimension
@@ -534,7 +534,7 @@ class PlateMeasurement(Treant):
             if number_of_circles>=self.number_of_wells:
                 break
             elif number_of_circles>self.number_of_wells:
-                raise SystemError, str(number_of_circles)+" circles found, this is too many!"
+                raise(SystemError, str(number_of_circles)+" circles found, this is too many!")
             else:
                 radius_multiplier+=radius_tolerance
 
