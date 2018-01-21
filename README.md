@@ -1,49 +1,82 @@
 # Automated Mycobacterial Growth Detection Algorithm (AMyGDA)
 
-This is a python module that takes a photograph of a 96 well plate and assesses each well for the presence of bacterial growth (here *Mycobacterial tuberculosis*). Since each well contains a different concentration of a different antibiotic, the minimum inhibitory concentration, as used in clinical microbiology, can be determined.
+This is a `python3` module that takes a photograph of a 96 well plate and assesses each well for the presence of bacterial growth (here *Mycobacterial tuberculosis*). Since each well contains a different concentration of a different antibiotic, the minimum inhibitory concentration, as used in clinical microbiology, can be determined.
+
+A [preprint](https://doi.org/10.1101/229427) describing the software and demonstrating its reproducibility and accuracy is available from the biorXiv and the manuscript is has been submitted to a peer-reviewed journal. Until it is accepted, please cite the biorXiv paper below.
+
 
 The development of this software was funded by the National Institute for Health Research (NIHR) Oxford Biomedical Research Centre (BRC) to aid the [CRyPTIC project](http://www.crypticproject.org).
 
 This software was downloaded from [https://fowlerlab.org/software/amygda](https://fowlerlab.org/software/amygda).
 
-Philip W Fowler
+**Philip W Fowler**
 
 philip.fowler@ndm.ox.ac.uk
 
 21 January 2018
 
-## Pre-requsities
+## Citing
 
-The following python modules should be installed before running AMyGDA.
+ The final citation will be added here when it is known.
 
-- [numpy](http://www.numpy.org). It is possible your python installation includes numpy. To check, issue the following in a terminal
+	Automated detection of Mycobacterial growth on 96-well plates for rapid and accurate Tuberculosis drug susceptibility testing
+	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Timothy M Walker, Esther Robinson, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
+	bioRxiv 229427; doi: https://doi.org/10.1101/229427
+
+
+## Installation
+
+This is python3; python2 will not work. Installation is straightforward using the included `setup.py` script. First clone the repository (or download it directly from this GitHub page)
+
+	$ git clone https://github.com/philipwfowler/amygda.git
+	
+This will download the repository, creating a folder on your computer called `amygda/`. If you only wish to install the package in your `$HOME` directory (or don't have sudo access) issue the `--user` flag
+
+	$ cd amygda/
+	$ python setup.py install --user
+
+Alternatively, to install system-wide
+	
+	$ sudo python setup.py install
+	
+The setup.py will automatically looks for the required following python packages and, if they are not present, will install them, or if they are an old version, will update them. 
+
+The information below is only included in case this process does not work. The prerequisites are
+
+- [`numpy`](http://www.numpy.org). Your python installation often includes numpy. To check, issue the following in a terminal
 
 		$ python -c "import numpy"
 
-	If you see an error, indicating numpy is not installed, please install the scipy stack by following [these instructions](https://www.scipy.org/install.html).
+	If you see an error, indicating `numpy` is not installed, please install the scipy stack by following [these instructions](https://www.scipy.org/install.html).
 
-- [opencv-python](https://pypi.python.org/pypi/opencv-python). This can be installed using  standard python tools, such as pip
+- [`opencv-python`](https://pypi.python.org/pypi/opencv-python). This can be installed using  standard python tools, such as pip
 
 		$ pip install opencv-python
-	AMyGDA was developed and tested using version 3.2.0 of OpenCV. If you do not have sudo access on your machine you can install this (and any other python module) in your $HOME directory using the following command
+	`AMyGDA` was developed and tested using version 3.2.0 of `OpenCV`. If you do not have `sudo` access on your machine you can install this (and any other python module) in your `$HOME` directory using the following command
 	
 		$ pip install opencv-python --user	
 
-- [datreant](http://datreant.readthedocs.io/en/latest/). This provides a neat way of storing and discovering metadata for each image using the native filesystem. It is not essential for the operation of AMyGDA, but the code would need re-factoring to remove this dependency. Again it can be installed using pip
+- [`datreant`](http://datreant.readthedocs.io/en/latest/). This provides a neat way of storing and discovering metadata for each image using the native filesystem. It is not essential for the operation of `AMyGDA`, but the code would need re-factoring to remove this dependency. Again it can be installed using pip
 
 		$ pip install datreant.core  
 		
-	Note that datreant works best if each image is containing within its own folder. datreant automatically stores all metadata associated with each image within a JSON file in the same location as the input file. 
+	Note that `datreant` works best if each image is containing within its own folder. `datreant` automatically stores all metadata associated with each image within a `JSON` file in the same location as the input file. 
 
 ## Tutorial
 
-The code is structured as a python module; all files for which can be found in the amygda/ subfolder. 
+The code is structured as a python module; all files for which can be found in the `amygda/` subfolder. 
 
 	$ ls
-	LICENCE.md                   amygda                       plate-configuration
-	README.md                    analyse-plate-with-amygda.py sample-images
+	LICENCE.md                   amygda/                       setup.py
+	README.md                    examples/ 
 
-analyse-plate-with-amygda.py is a simple python file showing how the module can be used to analyse a single image. The same twenty images that are used in the accompanying paper (see below) are provided so you can reconstruct several of the images in the manuscript and Supplementary Information. All these images are organised as follows 
+(You may see other folders like `build/` if you are run the `setup.py` script. To run the tutorial move into the `examples/` sub-folder.
+
+	$ cd examples/
+	$ ls
+	analyse-plate-with-amygda.py plate-configuration/          sample-images/
+	
+`analyse-plate-with-amygda.py` is a simple python file showing how the module can be used to analyse a single image. The same twenty images that are used in the accompanying paper (see above) are provided so you can reconstruct many of the images in the manuscript and Supplementary Information. All these images are organised as follows 
 
 	$ ls sample-images/
 	01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20
@@ -55,7 +88,11 @@ To process and analyse a single image using the default settings is simply
 
 	$ ./analyse-plate-with-amygda.py --image sample-images/01/image-01-raw.png 
 	
-And should take no more than 10 seconds. No output is written to the terminal, instead you will find a series of new files have been written in the samples-images/01 folder.
+or equivalently
+
+	$ python analyse-plate-with-amygda.py --image sample-images/01/image-01-raw.png 
+	
+And should take no more than 10 seconds. No output is written to the terminal, instead you will find a series of new files have been written in the `samples-images/01` folder.
 
 	$ ls sample-images/01/
 	PlateMeasurement.0460f5d7-f3b2-45f7-9cdc-2bd407ba0790.json
@@ -65,14 +102,14 @@ And should take no more than 10 seconds. No output is written to the terminal, i
 	image-01-processed.png
 	image-01-raw.png	
 
-* The JSON file contains all the MICs and other metadata about the plate and can be automatically discovered and read using the datreant module to make systematic analyses simpler. 
-* image-01-mics.txt contains the same information as the JSON file but in a simpler format that is easier for humans to read.
-* image-01-arrays.npz contains a series of numpy arrays that specify e.g. the percentage growth in each well
-* image-01-raw.png is the original image of the plate.
-* image-01-filtered.png is a PNG of the plate following mean shift filtering and application of a Contrast Limited Adaptive Histogram Equalization filter to improve contrast and equalise the illumination across the plate.
-* image-01-processed.png adds some annotation; specifically the locations of the wells are drawn, each well is labelled with the name and concentration of drug and wells which AMyGDA has classified as containing bacterial growth are highlighted with a coloured square. 
+* The `JSON` file contains all the MICs and other metadata about the plate and can be automatically discovered and read using the `datreant` module to make systematic analyses simpler. 
+* `image-01-mics.txt` contains the same information as the `JSON` file but in a simpler format that is easier for humans to read.
+* `image-01-arrays.npz` contains a series of `numpy` arrays that specify e.g. the percentage growth in each well
+* `image-01-raw.png` is the original image of the plate.
+* `image-01-filtered.png` is a PNG of the plate following mean shift filtering and application of a Contrast Limited Adaptive Histogram Equalization filter to improve contrast and equalise the illumination across the plate.
+* `image-01-processed.png` adds some annotation; specifically the locations of the wells are drawn, each well is labelled with the name and concentration of drug and wells which AMyGDA has classified as containing bacterial growth are highlighted with a coloured square. 
 
-To see the other options available for the analyse-plate-with-amygda.py python script
+To see the other options available for the `analyse-plate-with-amygda.py` python script
 
 	$ ./python analyse-plate-with-amygda.py --help
 	usage: analyse-plate-with-amygda.py [-h] [--image IMAGE]
@@ -128,13 +165,6 @@ To delete all the output files, thereby returning sample-images/ to its clean st
 	image-01-raw.png
 	
 	
-## Citing
-
-A [preprint](https://doi.org/10.1101/229427) is available from the biorXiv and the manuscript is has been submitted to a peer-reviewed journal. Until it is accepted, please cite the biorXiv paper. The final citation will be added here when it is known.
-
-	Automated detection of Mycobacterial growth on 96-well plates for rapid and accurate Tuberculosis drug susceptibility testing
-	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Timothy M Walker, Esther Robinson, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
-	bioRxiv 229427; doi: https://doi.org/10.1101/229427
 
 ## Licence
 
