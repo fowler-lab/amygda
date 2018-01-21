@@ -77,7 +77,7 @@ if plate.identify_wells():
     plate.annotate_well_drugs_concs(color=black,fontsize=0.5)
 
     # add squares where the algorithm has detected growth
-    plate.annotate_well_analysed_region(growth_color=yellow,region=options.measured_region,thickness=2)
+    plate.annotate_well_analysed_region(growth_color=pink,region=options.measured_region,thickness=2)
 
     # save the final image with wells with identified growth marked by red squares
     plate.save_image(plate_stem+"-processed.png")

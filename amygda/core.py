@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 
-import statefiles
+#import statefiles
 import cv2, numpy
 from datreant.core import Treant
+from amygda.statefiles import PlateMeasurementFile
 
 class PlateMeasurement(Treant):
 
@@ -18,7 +19,7 @@ class PlateMeasurement(Treant):
     """
 
     _treanttype='PlateMeasurement'
-    _backendclass = statefiles.PlateMeasurementFile
+    _backendclass = PlateMeasurementFile
 
     def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='plate-configuration/', plate_design='CRyPTIC1-V1'):
 
@@ -453,14 +454,16 @@ class PlateMeasurement(Treant):
             if mic_conc is None:
                 mic_conc="None"
                 mic_dilution="None"
+                self.categories["IM_"+drug.upper()+"MIC"]=mic_conc
+                self.categories["IM_"+drug.upper()+"DILUTION"]=mic_dilution
+            else:
+                self.categories["IM_"+drug.upper()+"MIC"]=int(mic_conc)
+                self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
 
             # pick up any cases where an MIC has not been assigned
             # (indicates an error in the above logic somewhere)
             assert mic_conc!="None"
             assert mic_conc!=None
-
-            self.categories["IM_"+drug.upper()+"MIC"]=mic_conc
-            self.categories["IM_"+drug.upper()+"DILUTION"]=mic_dilution
 
         assert number_drugs_inconsistent_growth>=0
         self.categories["IM_DRUGS_INCONSISTENT_GROWTH"]=number_drugs_inconsistent_growth
