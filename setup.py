@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='amygda',
-    version='0.2.0',
+    version='1.1.0',
     author='Philip W Fowler',
     packages=['amygda'],
     install_requires=[
