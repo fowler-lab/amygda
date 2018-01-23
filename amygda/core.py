@@ -21,7 +21,7 @@ class PlateMeasurement(Treant):
     _treanttype='PlateMeasurement'
     _backendclass = PlateMeasurementFile
 
-    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='plate-configuration/', plate_design='CRyPTIC1-V1'):
+    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config/', plate_design='CRyPTIC1-V1'):
 
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
