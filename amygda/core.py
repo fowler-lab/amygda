@@ -26,7 +26,10 @@ class PlateMeasurement(Treant):
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
         # store the image name provided in the categories
-        self.image_name=self.categories['PlateImage']
+        if 'PlateImage' in self.categories.keys():
+            self.image_name=self.categories['PlateImage']
+        elif 'PLATEIMAGE' in self.categories.keys():
+            self.image_name=self.categories['PLATEIMAGE']
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
