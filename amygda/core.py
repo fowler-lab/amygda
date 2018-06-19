@@ -13,7 +13,7 @@ class PlateMeasurement(Treant):
     Args:
         new (True/False): whether this is a new PlateMeasurement (default is False)
         plate_image (str): path to the image file to analyse
-        categories (dict): a dictionary containing meta-data for the image. Must contain the name of the image (imagename) as {'PlateImage':imagename}
+        categories (dict): a dictionary containing meta-data for the image. Must contain the name of the image (imagename) as {'ImageFileName':imagename}
         tags (str or list): strings containing tags to differentiate the Plates. Not required.
         well_dimensions (tuple): tuple of 2 integers defining the (rows, cols) of the plate. Default=(8,12)
     """
@@ -26,10 +26,10 @@ class PlateMeasurement(Treant):
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
         # store the image name provided in the categories
-        if 'PlateImage' in self.categories.keys():
-            self.image_name=self.categories['PlateImage']
-        elif 'PLATEIMAGE' in self.categories.keys():
-            self.image_name=self.categories['PLATEIMAGE']
+        if 'ImageFileName' in self.categories.keys():
+            self.image_name=self.categories['ImageFileName']
+        elif 'IMAGEFILENAME' in self.categories.keys():
+            self.image_name=self.categories['IMAGEFILENAME']
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
@@ -440,7 +440,7 @@ class PlateMeasurement(Treant):
             #  (can infer that the concentration of the first well is at least an upper limit for the MIC)
             if seen_no_growth and not seen_growth and not mic_conc:
                 mic_conc=numpy.min(conc)
-                mic_dilution=0
+                mic_dilution=1
 
             # what if there is anomalous growth?
             if inconsistent_growth:
@@ -455,12 +455,10 @@ class PlateMeasurement(Treant):
 
             # translate into text for storing in the treant
             if mic_conc is None:
-                mic_conc="None"
-                mic_dilution="None"
-                self.categories["IM_"+drug.upper()+"MIC"]=mic_conc
-                self.categories["IM_"+drug.upper()+"DILUTION"]=mic_dilution
+                self.categories["IM_"+drug.upper()+"MIC"]="None"
+                self.categories["IM_"+drug.upper()+"DILUTION"]="None"
             else:
-                self.categories["IM_"+drug.upper()+"MIC"]=int(mic_conc)
+                self.categories["IM_"+drug.upper()+"MIC"]=float(mic_conc)
                 self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
 
             # pick up any cases where an MIC has not been assigned
