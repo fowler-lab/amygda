@@ -503,11 +503,9 @@ class PlateMeasurement(Treant):
         # verify that the estimated dimensions of the wells are within 5% of one another
         if estimate_well_x > estimate_well_y:
             if estimate_well_x > 1.05*estimate_well_y:
-                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
         else:
             if estimate_well_y > 1.05*estimate_well_x:
-                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
 
         # now estimate the radius as the mean of half the estimated well dimension
