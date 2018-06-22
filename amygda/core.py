@@ -78,7 +78,7 @@ class PlateMeasurement(Treant):
                 if self.well_drug_conc[(iy,ix)]==0.0:
                     self.well_positive_controls.append((iy,ix))
 
-        self.well_positive_controls_number=len(self.well_positive_controls)+1
+        self.well_positive_controls_number=len(self.well_positive_controls)
 
         # create a list of the drug names
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
