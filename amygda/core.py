@@ -13,7 +13,7 @@ class PlateMeasurement(Treant):
     Args:
         new (True/False): whether this is a new PlateMeasurement (default is False)
         plate_image (str): path to the image file to analyse
-        categories (dict): a dictionary containing meta-data for the image. Must contain the name of the image (imagename) as {'PlateImage':imagename}
+        categories (dict): a dictionary containing meta-data for the image. Must contain the name of the image (imagename) as {'ImageFileName':imagename}
         tags (str or list): strings containing tags to differentiate the Plates. Not required.
         well_dimensions (tuple): tuple of 2 integers defining the (rows, cols) of the plate. Default=(8,12)
     """
@@ -26,10 +26,10 @@ class PlateMeasurement(Treant):
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
         # store the image name provided in the categories
-        if 'PlateImage' in self.categories.keys():
-            self.image_name=self.categories['PlateImage']
-        elif 'PLATEIMAGE' in self.categories.keys():
-            self.image_name=self.categories['PLATEIMAGE']
+        if 'ImageFileName' in self.categories.keys():
+            self.image_name=self.categories['ImageFileName']
+        elif 'IMAGEFILENAME' in self.categories.keys():
+            self.image_name=self.categories['IMAGEFILENAME']
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
@@ -75,7 +75,7 @@ class PlateMeasurement(Treant):
                 if self.well_drug_conc[(iy,ix)]==0.0:
                     self.well_positive_controls.append((iy,ix))
 
-        self.well_positive_controls_number=len(self.well_positive_controls)+1
+        self.well_positive_controls_number=len(self.well_positive_controls)
 
         # create a list of the drug names
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
@@ -452,8 +452,13 @@ class PlateMeasurement(Treant):
 
             # translate into text for storing in the treant
             if mic_conc is None:
+<<<<<<< HEAD
                 self.categories["IM_"+drug.upper()+"MIC"]=None
                 self.categories["IM_"+drug.upper()+"DILUTION"]=None
+=======
+                self.categories["IM_"+drug.upper()+"MIC"]="None"
+                self.categories["IM_"+drug.upper()+"DILUTION"]="None"
+>>>>>>> 1ad69373c6853d902087dd87776592f4f0992152
             else:
                 self.categories["IM_"+drug.upper()+"MIC"]=float(mic_conc)
                 self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
@@ -500,11 +505,9 @@ class PlateMeasurement(Treant):
         # verify that the estimated dimensions of the wells are within 5% of one another
         if estimate_well_x > estimate_well_y:
             if estimate_well_x > 1.05*estimate_well_y:
-                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
         else:
             if estimate_well_y > 1.05*estimate_well_x:
-                print(self.image_name+" has estimated well dimensions more than 10% different - check the image")
                 return False
 
         # now estimate the radius as the mean of half the estimated well dimension
