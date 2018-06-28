@@ -51,9 +51,6 @@ class PlateMeasurement(Treant):
         # it needs to be colour for the mean shift filter to work
         self.image = cv2.imread(self.image_path)
 
-        # set the downloaded flag to be True in case was missed during retrieval
-        self.categories["IM_IMAGE_DOWNLOADED"]=True
-
         # this is a colour image
         self.image_colour=True
 
@@ -461,8 +458,13 @@ class PlateMeasurement(Treant):
 
             # translate into text for storing in the treant
             if mic_conc is None:
+<<<<<<< HEAD
+                self.categories["IM_"+drug.upper()+"MIC"]=None
+                self.categories["IM_"+drug.upper()+"DILUTION"]=None
+=======
                 self.categories["IM_"+drug.upper()+"MIC"]="None"
                 self.categories["IM_"+drug.upper()+"DILUTION"]="None"
+>>>>>>> 1ad69373c6853d902087dd87776592f4f0992152
             else:
                 self.categories["IM_"+drug.upper()+"MIC"]=float(mic_conc)
                 self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
