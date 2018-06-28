@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-#import statefiles
+import pkg_resources
 import cv2, numpy
 from datreant.core import Treant
 from amygda.statefiles import PlateMeasurementFile
@@ -21,7 +21,7 @@ class PlateMeasurement(Treant):
     _treanttype='PlateMeasurement'
     _backendclass = PlateMeasurementFile
 
-    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config/', plate_design='CRyPTIC1-V1'):
+    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='CRyPTIC1-V1'):
 
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
@@ -38,7 +38,7 @@ class PlateMeasurement(Treant):
         self.number_of_wells = self.well_dimensions[0]*self.well_dimensions[1]
 
         # store the path and name of the plate
-        self.configuration_path = configuration_path
+        self.configuration_path = '/'.join(('..',configuration_path))
         self.plate_design = plate_design
 
     def load_image(self,filename):
@@ -67,9 +67,15 @@ class PlateMeasurement(Treant):
         self.well_top_left = numpy.zeros(self.well_dimensions,dtype=(int,2))
         self.well_bottom_right = numpy.zeros(self.well_dimensions,dtype=(int,2))
         self.well_growth = numpy.zeros(self.well_dimensions,dtype=numpy.float64)
-        self.well_drug_name = numpy.loadtxt(self.configuration_path+"/"+self.plate_design+"-drug-matrix.txt",delimiter=',',dtype=str)
-        self.well_drug_conc = numpy.loadtxt(self.configuration_path+"/"+self.plate_design+"-conc-matrix.txt",delimiter=',',dtype=float)
-        self.well_drug_dilution = numpy.loadtxt(self.configuration_path+"/"+self.plate_design+"-dilution-matrix.txt",delimiter=',',dtype=int)
+
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-drug-matrix.txt")
+        self.well_drug_name = numpy.loadtxt(filename,delimiter=',',dtype=str)
+
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-conc-matrix.txt")
+        self.well_drug_conc = numpy.loadtxt(filename,delimiter=',',dtype=float)
+
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-dilution-matrix.txt")
+        self.well_drug_dilution = numpy.loadtxt(filename,delimiter=',',dtype=int)
 
         # identify the control wells
         self.well_positive_controls=[]
