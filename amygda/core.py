@@ -65,13 +65,13 @@ class PlateMeasurement(Treant):
         self.well_bottom_right = numpy.zeros(self.well_dimensions,dtype=(int,2))
         self.well_growth = numpy.zeros(self.well_dimensions,dtype=numpy.float64)
 
-        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-drug-matrix.txt")
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-drug-matrix.txt")
         self.well_drug_name = numpy.loadtxt(filename,delimiter=',',dtype=str)
 
-        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-conc-matrix.txt")
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-conc-matrix.txt")
         self.well_drug_conc = numpy.loadtxt(filename,delimiter=',',dtype=float)
 
-        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.study+"-"+self.instance+"-dilution-matrix.txt")
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-dilution-matrix.txt")
         self.well_drug_dilution = numpy.loadtxt(filename,delimiter=',',dtype=int)
 
         # identify the control wells
@@ -458,21 +458,12 @@ class PlateMeasurement(Treant):
 
             # translate into text for storing in the treant
             if mic_conc is None:
-<<<<<<< HEAD
                 self.categories["IM_"+drug.upper()+"MIC"]=None
                 self.categories["IM_"+drug.upper()+"DILUTION"]=None
-=======
-                self.categories["IM_"+drug.upper()+"MIC"]="None"
-                self.categories["IM_"+drug.upper()+"DILUTION"]="None"
->>>>>>> 1ad69373c6853d902087dd87776592f4f0992152
             else:
                 self.categories["IM_"+drug.upper()+"MIC"]=float(mic_conc)
                 self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
 
-            # pick up any cases where an MIC has not been assigned
-            # (indicates an error in the above logic somewhere)
-            assert mic_conc!="None"
-            assert mic_conc!=None
 
         assert number_drugs_inconsistent_growth>=0
         self.categories["IM_DRUGS_INCONSISTENT_GROWTH"]=number_drugs_inconsistent_growth
