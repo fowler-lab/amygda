@@ -535,7 +535,11 @@ class PlateMeasurement(Treant):
             if number_of_circles>=self.number_of_wells:
                 break
             elif number_of_circles>self.number_of_wells:
-                raise(SystemError, str(number_of_circles)+" circles found, this is too many!")
+                print(str(number_of_circles)+" circles found, this is too many!")
+                break
+            elif radius_multiplier>1.5:
+                print("reached maximum radius multiplier of 1.5 and found "+str(number_of_circles)+" circles, giving up")
+                break
             else:
                 radius_multiplier+=radius_tolerance
 
