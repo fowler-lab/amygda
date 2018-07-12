@@ -397,6 +397,13 @@ class PlateMeasurement(Treant):
             conc=self.well_drug_conc[self.well_drug_name==drug][::-1]
             dilution=self.well_drug_dilution[self.well_drug_name==drug][::-1]
 
+            # this is a bit hacky, but the problem was the above arrays were not
+            # being returned sorted for EMB since it "goes around the corner"
+            # this logic uses dilution to correctly order the wells, then resets it
+            growth=growth[dilution-1]
+            conc=conc[dilution-1]
+            dilution=numpy.arange(len(dilution))+1
+
             # start off with no MIC and not having seen anything
             mic_conc=None
             mic_dilution=None
@@ -537,8 +544,8 @@ class PlateMeasurement(Treant):
             elif number_of_circles>self.number_of_wells:
                 print(self.image_path+": "+str(number_of_circles)+" circles found, this is more than the expected number of "+str(self.number_of_wells))
                 break
-            elif radius_multiplier>1.5:
-                print(self.image_path+": "+"reached maximum radius multiplier of 1.5 and found "+str(number_of_circles)+" circles, giving up")
+            elif radius_multiplier>2:
+                print(self.image_path+": "+"reached maximum radius multiplier of 2 and found "+str(number_of_circles)+" circles, giving up")
                 break
             else:
                 radius_multiplier+=radius_tolerance
