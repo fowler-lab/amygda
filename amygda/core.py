@@ -1,7 +1,10 @@
 #! /usr/bin/env python
 
-import pkg_resources
+import pkg_resources, pickle
 import cv2, numpy
+from scipy import stats
+import matplotlib.pyplot as plt
+
 from datreant.core import Treant
 from amygda.statefiles import PlateMeasurementFile
 
@@ -21,7 +24,7 @@ class PlateMeasurement(Treant):
     _treanttype='PlateMeasurement'
     _backendclass = PlateMeasurementFile
 
-    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='CRyPTIC1-V1'):
+    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='CRyPTIC1-V1',pixel_intensities=False):
 
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
@@ -41,11 +44,16 @@ class PlateMeasurement(Treant):
         self.configuration_path = '/'.join(('..',configuration_path))
         self.plate_design = plate_design
 
-    def load_image(self,filename):
+        # remember whether we will be analysing and keeping the pixel intensities etc
+        self.pixel_intensities=pixel_intensities
+
+        self.plate_stem=self.abspath+self.image_name
+
+    def load_image(self,file_ending):
         """ Load and store the image and its dimensions, then initialise a series of arrays to record the results
         """
 
-        self.image_path=filename
+        self.image_path=self.plate_stem + file_ending
 
         # load the image as a 3-channel array
         # it needs to be colour for the mean shift filter to work
@@ -86,14 +94,20 @@ class PlateMeasurement(Treant):
         # create a list of the drug names
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
 
-    def save_arrays(self,filename):
+        if self.pixel_intensities:
+            self.well_pixel_intensities={}
+            for i in range(self.well_dimensions[0]):
+                for j in range(self.well_dimensions[1]):
+                    self.well_pixel_intensities[(i,j)]=[]
+
+    def save_arrays(self,file_ending):
         """ Save the numpy arrays with the well coordinates and growth etc in a single NPZ file.
         """
 
         # Ugly, but ensures that all the arrays keep their names when saved to the file.
         # Note that without compression the files are only 10Kb, which is << the size of the images
         # so there is no point compressing them. No difference in timing.
-        numpy.savez(filename,   well_index=self.well_index,
+        numpy.savez(self.plate_stem+file_ending,   well_index=self.well_index,
                                 well_radii=self.well_radii,
                                 well_centre=self.well_centre,
                                 well_top_left=self.well_top_left,
@@ -106,12 +120,15 @@ class PlateMeasurement(Treant):
                                 threshold_percentage=self.threshold_percentage,
                                 sensitivity=self.sensitivity)
 
-    def load_arrays(self,filename):
+        if self.pixel_intensities:
+            pickle.dump(self.well_pixel_intensities, open(self.plate_stem+"-pixels.pkl",'wb'))
+
+    def load_arrays(self,file_ending,pixel_intensities=False):
         """ Load the numpy arrays with the well coordinates and growth etc from a single NPZ file.
         """
 
         # Also ugly, but at least it works and is explicit
-        npzfile=numpy.load(filename)
+        npzfile=numpy.load(self.plate_stem+file_ending)
         self.well_index = npzfile['well_index']
         self.well_radii = npzfile['well_radii']
         self.well_centre = npzfile['well_centre']
@@ -127,6 +144,9 @@ class PlateMeasurement(Treant):
 
         # create a list of the drug names
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
+
+        if pixel_intensities:
+            self.well_pixel_intensities=pickle.load(open(self.plate_stem+"-pixels.pkl","rb"))
 
     def mean_shift_filter(self,spatial_radius=10,colour_radius=10):
         """ Apply a mean shift filter to produce a cleaner, more homogenous image.
@@ -154,6 +174,50 @@ class PlateMeasurement(Treant):
         # equalise the image histogram globally (will not take account of the uneven lighting)
         self.image=cv2.equalizeHist(self.image)
 
+    def plot_histogram(self,file_ending):
+
+        plt.tight_layout()
+        fig = plt.figure(figsize=(6, 3))
+        axis = plt.gca()
+        axis.set_xlim([0,255])
+        axis.axes.get_yaxis().set_visible(False)
+        axis.spines['left'].set_visible(False)
+        axis.spines['right'].set_visible(False)
+        axis.spines['top'].set_visible(False)
+        plt.hist(self.image.flatten(),bins=25,histtype='stepfilled',align='left',alpha=0.5,color="black",edgecolor='black',linewidth=1)
+        plt.savefig(self.plate_stem+file_ending)
+
+    def stretch_histogram(self,debug=False):
+
+        mode=stats.mode(self.image,axis=None)[0]
+
+        if debug:
+            lower=numpy.percentile(self.image,5)
+            upper=numpy.percentile(self.image,95)
+            line="%s,%d,%d,%d" % (self.name,lower,mode,upper)
+
+        self.image=(numpy.array(self.image,dtype=numpy.int16))-mode
+
+        lower=numpy.percentile(self.image,5)
+        upper=numpy.percentile(self.image,95)
+
+        pos_factor=40./upper
+        neg_factor=-110./lower
+
+        self.image=numpy.multiply(self.image,numpy.where(self.image>0,pos_factor,neg_factor))
+        self.image=self.image+180.
+
+        lower=numpy.percentile(self.image,5)
+        upper=numpy.percentile(self.image,95)
+        mode=stats.mode(self.image,axis=None)[0]
+
+        if debug:
+            lower=numpy.percentile(self.image,5)
+            upper=numpy.percentile(self.image,95)
+            line+=",%d,%d,%d" % (lower,mode,upper)
+            print(line)
+
+
     def equalise_histograms_locally(self):
         """ Apply a Contrast Limited Adaptive Histogram Equalization filter.
 
@@ -171,11 +235,11 @@ class PlateMeasurement(Treant):
 
         self.image = clahe.apply(self.image)
 
-    def save_image(self,filename):
+    def save_image(self,file_ending):
         """ Save the image to disc.
         """
 
-        cv2.imwrite(filename,self.image)
+        cv2.imwrite(self.plate_stem+file_ending,self.image)
 
     def _convert_image_to_colour(self):
         """ Convert the image to colour.
@@ -289,9 +353,11 @@ class PlateMeasurement(Treant):
 
                 if self.well_growth[iy,ix]>growth_threshold_percentage:
                     if self.categories["IM_POS1"] and self.categories["IM_POS2"]:
-                        cv2.rectangle(self.image,(int(x-r),int(y-r)),(int(x+r),int(y+r)),growth_color,thickness=thickness)
+                        cv2.circle(self.image,(x,y),int(r),growth_color,thickness=thickness)
+                        # cv2.rectangle(self.image,(int(x-r),int(y-r)),(int(x+r),int(y+r)),growth_color,thickness=thickness)
                     else:
-                        cv2.rectangle(self.image,(int(x-r),int(y-r)),(int(x+r),int(y+r)),(0,0,0),thickness=thickness)
+                        cv2.circle(self.image,(x,y),int(r),(0,0,0),thickness=thickness)
+                        # cv2.rectangle(self.image,(int(x-r),int(y-r)),(int(x+r),int(y+r)),(0,0,0),thickness=thickness)
 
     def delete_mics(self):
 
@@ -331,6 +397,8 @@ class PlateMeasurement(Treant):
         self.threshold_percentage=threshold_percentage
         self.sensitivity=sensitivity
 
+        (y0,x0)=numpy.ogrid[:self.image.shape[0],:self.image.shape[1]]
+
         for iy in range(0,self.well_dimensions[0]):
             for ix in range(0,self.well_dimensions[1]):
 
@@ -338,11 +406,21 @@ class PlateMeasurement(Treant):
                 y=self.well_centre[(iy,ix)][1]
                 r=self.well_radii[(iy,ix)]*region
 
-                rect = self.image[int(y-r):int(y+r),int(x-r):int(x+r)]
+                # make a circular mask
+                circular_mask=(x0-x)**2+(y0-y)**2<(r**2)
+
+                # rect = self.image[int(y-r):int(y+r),int(x-r):int(x+r)]
+                rect = self.image[circular_mask]
+
                 # rect = cv2.cvtColor(rect, cv2.COLOR_BGR2GRAY)
                 rect_pixels = rect.flatten()
 
-                self.well_growth[iy,ix] = numpy.sum([rect_pixels<self.threshold_pixel],dtype=numpy.float64)/(rect.shape[0]*rect.shape[1])*100
+                if self.pixel_intensities:
+                    for j in rect_pixels:
+                        self.well_pixel_intensities[iy,ix].append(j)
+
+                # self.well_growth[iy,ix] = numpy.sum([rect_pixels<self.threshold_pixel],dtype=numpy.float64)/(rect.shape[0]*rect.shape[1])*100
+                self.well_growth[iy,ix] = numpy.sum([rect_pixels<self.threshold_pixel],dtype=numpy.float64)/(len(rect))*100
 
         counter=1
         positive_control_growth_total=0.0
@@ -475,7 +553,7 @@ class PlateMeasurement(Treant):
         assert number_drugs_inconsistent_growth>=0
         self.categories["IM_DRUGS_INCONSISTENT_GROWTH"]=number_drugs_inconsistent_growth
 
-    def write_mics(self,filename):
+    def write_mics(self,file_ending):
         """ Write the results to a plaintext file.
 
         These are simply all the data stored in the JSON file, but this is difficult to read, so this
@@ -483,7 +561,7 @@ class PlateMeasurement(Treant):
         for each well, as well as information about the growth in the control well(s).
         """
 
-        OUTPUT = open(filename,'w')
+        OUTPUT = open(self.plate_stem+file_ending,'w')
 
         for field in sorted(self.categories.keys()):
             OUTPUT.write("%28s %20s" % (field, self.categories[field]))

@@ -4,6 +4,7 @@ setup(
     name='amygda',
     version='1.1.0',
     author='Philip W Fowler',
+    scripts=['bin/analyse-plate-with-amygda.py'],
     packages=['amygda'],
     install_requires=[
         "numpy >= 1.13",

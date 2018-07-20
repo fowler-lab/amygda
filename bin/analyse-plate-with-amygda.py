@@ -1,15 +1,17 @@
 #! /usr/bin/env python
 
 import amygda
-import argparse
+import argparse, numpy
+from scipy import stats
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image",help="the path to the image")
 parser.add_argument("--growth_pixel_threshold",default=130,type=int,help="the pixel threshold, below which a pixel is considered to be growth (0-255)")
 parser.add_argument("--growth_percentage",default=3,type=float,help="if the central measured region in a well has more than this percentage of pixels labelled as growing, then the well is classified as growth.")
-parser.add_argument("--measured_region",default=0.4,type=float,help="the size of the central measured region, as a decimal proportion of the whole well.")
+parser.add_argument("--measured_region",default=0.5,type=float,help="the size of the central measured region, as a decimal proportion of the whole well.")
 parser.add_argument("--sensitivity",default=4,type=float,help="if the average growth in the control wells is more than (sensitivity x growth_percentage), then consider growth down to this sensitivity ")
 parser.add_argument("--file_ending",default="-raw",type=str,help="the ending of the input file that is stripped. Default is '-raw' ")
+parser.add_argument("--pixel_intensities",action="store_true",help="calculate and store the measured pixel intensities in the centre of each well? Default is False")
 options = parser.parse_args()
 
 # parse the path to the input image and work out its stem of
@@ -21,7 +23,7 @@ for i in cols[1:-1]:
     image_path+="/"
 
 # create a new the measurement
-plate=amygda.PlateMeasurement(image_path,new=True,categories={'ImageFileName':image_name},configuration_path="config/")
+plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=options.pixel_intensities)
 
 # create the path for the output images
 plate_stem=plate.abspath+plate.image_name
@@ -39,7 +41,14 @@ black=(0,0,0)
 white=(255,255,255)
 
 # load the raw image
-plate.load_image(plate_stem+"-raw.png")
+plate.load_image("-raw.png")
+
+lower=numpy.percentile(plate.image,10)
+upper=numpy.percentile(plate.image,90)
+mode=stats.mode(plate.image,axis=None)[0]
+# print("BEFORE %d %d %d" % (lower,mode,upper))
+
+plate.plot_histogram("-raw-hist.pdf")
 
 # record that this image exists
 plate.categories['IM_IMAGE_DOWNLOADED']=True
@@ -50,14 +59,20 @@ plate.mean_shift_filter()
 # apply the local histogram equalisation method to improve contrast
 plate.equalise_histograms_locally()
 
+plate.save_image("-filtered.png")
+plate.plot_histogram("-filtered-hist.pdf")
+
+plate.stretch_histogram(debug=False)
+
 # save the filtered image
-plate.save_image(plate_stem+"-filtered.png")
+plate.save_image("-after.png")
+plate.plot_histogram("-after-hist.pdf")
 
 # record that this image has been filtered
 plate.categories['IM_IMAGE_FILTERED']=True
 
 # load in the photo of the plate
-plate.load_image(plate_stem+"-filtered.png")
+plate.load_image("-after.png")
 
 # attempt to segment the wells
 if plate.identify_wells():
@@ -68,7 +83,7 @@ if plate.identify_wells():
     plate.measure_growth(region=options.measured_region,threshold_pixel=options.growth_pixel_threshold,threshold_percentage=options.growth_percentage,sensitivity=options.sensitivity)
 
     # save the numpy arrays containing the growth, positions of wells etc to disc
-    plate.save_arrays(plate_stem+"-arrays.npz")
+    plate.save_arrays("-arrays.npz")
 
     # draw circles around the wells
     plate.annotate_well_circumference(color=black,linewidth=1)
@@ -80,7 +95,7 @@ if plate.identify_wells():
     plate.annotate_well_analysed_region(growth_color=pink,region=options.measured_region,thickness=2)
 
     # save the final image with wells with identified growth marked by red squares
-    plate.save_image(plate_stem+"-processed.png")
+    plate.save_image("-processed.png")
 
     # write the MICs to a simple plaintext file (they are stored in the JSON file but this is harder to read)
-    plate.write_mics(plate_stem+"-mics.txt")
+    plate.write_mics("-mics.txt")
