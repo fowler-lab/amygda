@@ -7,8 +7,8 @@ from scipy import stats
 parser = argparse.ArgumentParser()
 parser.add_argument("--image",help="the path to the image")
 parser.add_argument("--growth_pixel_threshold",default=130,type=int,help="the pixel threshold, below which a pixel is considered to be growth (0-255)")
-parser.add_argument("--growth_percentage",default=3,type=float,help="if the central measured region in a well has more than this percentage of pixels labelled as growing, then the well is classified as growth.")
-parser.add_argument("--measured_region",default=0.5,type=float,help="the size of the central measured region, as a decimal proportion of the whole well.")
+parser.add_argument("--growth_percentage",default=2,type=float,help="if the central measured region in a well has more than this percentage of pixels labelled as growing, then the well is classified as growth.")
+parser.add_argument("--measured_region",default=0.5,type=float,help="the radius of the central measured circle, as a decimal proportion of the whole well.")
 parser.add_argument("--sensitivity",default=4,type=float,help="if the average growth in the control wells is more than (sensitivity x growth_percentage), then consider growth down to this sensitivity ")
 parser.add_argument("--file_ending",default="-raw",type=str,help="the ending of the input file that is stripped. Default is '-raw' ")
 parser.add_argument("--pixel_intensities",action="store_true",help="calculate and store the measured pixel intensities in the centre of each well? Default is False")
@@ -43,13 +43,6 @@ white=(255,255,255)
 # load the raw image
 plate.load_image("-raw.png")
 
-lower=numpy.percentile(plate.image,10)
-upper=numpy.percentile(plate.image,90)
-mode=stats.mode(plate.image,axis=None)[0]
-# print("BEFORE %d %d %d" % (lower,mode,upper))
-
-plate.plot_histogram("-raw-hist.pdf")
-
 # record that this image exists
 plate.categories['IM_IMAGE_DOWNLOADED']=True
 
@@ -59,14 +52,10 @@ plate.mean_shift_filter()
 # apply the local histogram equalisation method to improve contrast
 plate.equalise_histograms_locally()
 
-plate.save_image("-filtered.png")
-plate.plot_histogram("-filtered-hist.pdf")
-
 plate.stretch_histogram(debug=False)
 
 # save the filtered image
 plate.save_image("-after.png")
-plate.plot_histogram("-after-hist.pdf")
 
 # record that this image has been filtered
 plate.categories['IM_IMAGE_FILTERED']=True
@@ -95,7 +84,7 @@ if plate.identify_wells():
     plate.annotate_well_analysed_region(growth_color=pink,region=options.measured_region,thickness=2)
 
     # save the final image with wells with identified growth marked by red squares
-    plate.save_image("-processed.png")
+    plate.save_image("-growth.png")
 
     # write the MICs to a simple plaintext file (they are stored in the JSON file but this is harder to read)
     plate.write_mics("-mics.txt")
