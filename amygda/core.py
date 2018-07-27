@@ -386,7 +386,7 @@ class PlateMeasurement(Treant):
         # check the parameters lie within the required ranges
         assert 255>=threshold_pixel>=0, "threshold_pixel must take a value between 0 and 255"
         assert 100>=threshold_percentage>=0, "threshold_percentage must take a value between 0 and 100"
-        assert 0.707>=region>=0, "if region is larger than sqrt(2) it will include parts of the well circumference."
+        assert 1>=region>=0, "if region is larger than 1 it will include parts of the well circumference."
 
         # convert the 3 channel image to 1 channel
         if self.image_colour:
@@ -564,7 +564,7 @@ class PlateMeasurement(Treant):
         OUTPUT = open(self.plate_stem+file_ending,'w')
 
         for field in sorted(self.categories.keys()):
-            OUTPUT.write("%28s %20s" % (field, self.categories[field]))
+            OUTPUT.write("%28s %20s\n" % (field, self.categories[field]))
 
         OUTPUT.close()
 
