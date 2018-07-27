@@ -11,7 +11,7 @@ parser.add_argument("--growth_percentage",default=2,type=float,help="if the cent
 parser.add_argument("--measured_region",default=0.5,type=float,help="the radius of the central measured circle, as a decimal proportion of the whole well.")
 parser.add_argument("--sensitivity",default=4,type=float,help="if the average growth in the control wells is more than (sensitivity x growth_percentage), then consider growth down to this sensitivity ")
 parser.add_argument("--file_ending",default="-raw",type=str,help="the ending of the input file that is stripped. Default is '-raw' ")
-parser.add_argument("--pixel_intensities",action="store_true",help="calculate and store the measured pixel intensities in the centre of each well? Default is False")
+# parser.add_argument("--pixel_intensities",action="store_true",help="calculate and store the measured pixel intensities in the centre of each well? Default is False")
 options = parser.parse_args()
 
 # parse the path to the input image and work out its stem of
@@ -23,7 +23,7 @@ for i in cols[1:-1]:
     image_path+="/"
 
 # create a new the measurement
-plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=options.pixel_intensities)
+plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False)
 
 # create the path for the output images
 plate_stem=plate.abspath+plate.image_name
@@ -49,22 +49,23 @@ plate.categories['IM_IMAGE_DOWNLOADED']=True
 # apply a mean shift filter to smooth the background colours
 plate.mean_shift_filter()
 
-plate.save_image("-msf.jpg")
-plate.plot_histogram("-msf-hist.pdf")
+#plate.save_image("-msf.jpg")
 
 # apply the local histogram equalisation method to improve contrast
 plate.equalise_histograms_locally()
 
+#plate.save_image("-clahe.jpg")
+
 plate.stretch_histogram(debug=False)
 
 # save the filtered image
-plate.save_image("-after.png")
+#plate.save_image("-after.jpg")
 
 # record that this image has been filtered
 plate.categories['IM_IMAGE_FILTERED']=True
 
 # load in the photo of the plate
-plate.load_image("-after.jpg")
+#plate.load_image("-after.jpg")
 
 # attempt to segment the wells
 if plate.identify_wells():
@@ -84,7 +85,7 @@ if plate.identify_wells():
     plate.annotate_well_drugs_concs(color=black,fontsize=0.5)
 
     # add squares where the algorithm has detected growth
-    plate.annotate_well_analysed_region(growth_color=yellow,region=options.measured_region,thickness=2)
+    plate.annotate_well_analysed_region(growth_color=yellow,region=options.measured_region,thickness=3)
 
     # save the final image with wells with identified growth marked by red squares
     plate.save_image("-growth.jpg")

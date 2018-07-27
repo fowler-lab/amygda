@@ -33,6 +33,9 @@ class PlateMeasurement(Treant):
             self.image_name=self.categories['ImageFileName']
         elif 'IMAGEFILENAME' in self.categories.keys():
             self.image_name=self.categories['IMAGEFILENAME']
+        else:
+            print("no image name")
+            self.image_name=None
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
