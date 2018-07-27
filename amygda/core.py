@@ -177,7 +177,7 @@ class PlateMeasurement(Treant):
     def plot_histogram(self,file_ending):
 
         plt.tight_layout()
-        fig = plt.figure(figsize=(6, 3))
+        fig = plt.figure(figsize=(4, 1.8))
         axis = plt.gca()
         axis.set_xlim([0,255])
         axis.axes.get_yaxis().set_visible(False)
@@ -296,7 +296,7 @@ class PlateMeasurement(Treant):
                 radius=1
                 cv2.circle(self.image,centre,radius,color,linewidth)
 
-    def annotate_well_drugs_concs(self,color=(0,0,0),fontsize=0.4):
+    def annotate_well_drugs_concs(self,color=(0,0,0),fontsize=0.4,fontemphasis=1):
         """ Label each well with the concentration of drug it contains.
 
         Args:
@@ -318,8 +318,8 @@ class PlateMeasurement(Treant):
 
                 (a,b) = (int(self.well_centre[(iy,ix)][0]),int(self.well_centre[(iy,ix)][1]))
 
-                cv2.putText(self.image, label1, (a-15,b-20), cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0,0,0), 1)
-                cv2.putText(self.image, label2, (a-15,b+30), cv2.FONT_HERSHEY_SIMPLEX, fontsize, (0,0,0), 1)
+                cv2.putText(self.image, label1, (a-15,b-20), cv2.FONT_HERSHEY_SIMPLEX, fontsize, color, fontemphasis)
+                cv2.putText(self.image, label2, (a-15,b+30), cv2.FONT_HERSHEY_SIMPLEX, fontsize, color, fontemphasis)
 
 
     def annotate_well_analysed_region(self,growth_color=(0,0,0),region=0.4,thickness=1): #,threshold_percentage=3,sensitivity=0):
