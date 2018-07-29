@@ -28,13 +28,12 @@ class PlateMeasurement(Treant):
 
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
-        # store the image name provided in the categories
+        # store the image name provided in the categories, if there is one
         if 'ImageFileName' in self.categories.keys():
             self.image_name=self.categories['ImageFileName']
         elif 'IMAGEFILENAME' in self.categories.keys():
             self.image_name=self.categories['IMAGEFILENAME']
         else:
-            print("no image name")
             self.image_name=None
 
         # store the (rows,cols) of the plate
@@ -50,13 +49,11 @@ class PlateMeasurement(Treant):
         # remember whether we will be analysing and keeping the pixel intensities etc
         self.pixel_intensities=pixel_intensities
 
-        self.plate_stem=self.abspath+self.image_name
-
     def load_image(self,file_ending):
         """ Load and store the image and its dimensions, then initialise a series of arrays to record the results
         """
 
-        self.image_path=self.plate_stem + file_ending
+        self.image_path=self.abspath+self.image_name+ file_ending
 
         # load the image as a 3-channel array
         # it needs to be colour for the mean shift filter to work
@@ -110,7 +107,7 @@ class PlateMeasurement(Treant):
         # Ugly, but ensures that all the arrays keep their names when saved to the file.
         # Note that without compression the files are only 10Kb, which is << the size of the images
         # so there is no point compressing them. No difference in timing.
-        numpy.savez(self.plate_stem+file_ending,   well_index=self.well_index,
+        numpy.savez(self.abspath+self.image_name+file_ending,   well_index=self.well_index,
                                 well_radii=self.well_radii,
                                 well_centre=self.well_centre,
                                 well_top_left=self.well_top_left,
@@ -124,14 +121,14 @@ class PlateMeasurement(Treant):
                                 sensitivity=self.sensitivity)
 
         if self.pixel_intensities:
-            pickle.dump(self.well_pixel_intensities, open(self.plate_stem+"-pixels.pkl",'wb'))
+            pickle.dump(self.well_pixel_intensities, open(self.abspath+self.image_name+"-pixels.pkl",'wb'))
 
     def load_arrays(self,file_ending,pixel_intensities=False):
         """ Load the numpy arrays with the well coordinates and growth etc from a single NPZ file.
         """
 
         # Also ugly, but at least it works and is explicit
-        npzfile=numpy.load(self.plate_stem+file_ending)
+        npzfile=numpy.load(self.abspath+self.image_name+file_ending)
         self.well_index = npzfile['well_index']
         self.well_radii = npzfile['well_radii']
         self.well_centre = npzfile['well_centre']
@@ -149,7 +146,7 @@ class PlateMeasurement(Treant):
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
 
         if pixel_intensities:
-            self.well_pixel_intensities=pickle.load(open(self.plate_stem+"-pixels.pkl","rb"))
+            self.well_pixel_intensities=pickle.load(open(self.abspath+self.image_name+"-pixels.pkl","rb"))
 
     def mean_shift_filter(self,spatial_radius=10,colour_radius=10):
         """ Apply a mean shift filter to produce a cleaner, more homogenous image.
@@ -188,7 +185,7 @@ class PlateMeasurement(Treant):
         axis.spines['right'].set_visible(False)
         axis.spines['top'].set_visible(False)
         plt.hist(self.image.flatten(),bins=25,histtype='stepfilled',align='left',alpha=0.5,color="black",edgecolor='black',linewidth=1)
-        plt.savefig(self.plate_stem+file_ending)
+        plt.savefig(self.abspath+self.image_name+file_ending)
 
     def stretch_histogram(self,debug=False):
 
@@ -242,7 +239,7 @@ class PlateMeasurement(Treant):
         """ Save the image to disc.
         """
 
-        cv2.imwrite(self.plate_stem+file_ending,self.image)
+        cv2.imwrite(self.abspath+self.image_name+file_ending,self.image)
 
     def _convert_image_to_colour(self):
         """ Convert the image to colour.
@@ -564,7 +561,7 @@ class PlateMeasurement(Treant):
         for each well, as well as information about the growth in the control well(s).
         """
 
-        OUTPUT = open(self.plate_stem+file_ending,'w')
+        OUTPUT = open(self.abspath+self.image_name+file_ending,'w')
 
         for field in sorted(self.categories.keys()):
             OUTPUT.write("%28s %20s\n" % (field, self.categories[field]))
