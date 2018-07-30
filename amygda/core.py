@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
 import pkg_resources, pickle
+
 import cv2, numpy
 from scipy import stats
 import matplotlib.pyplot as plt
