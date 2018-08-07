@@ -54,7 +54,7 @@ class PlateMeasurement(Treant):
         """ Load and store the image and its dimensions, then initialise a series of arrays to record the results
         """
 
-        self.image_path=self.abspath+self.image_name+ file_ending
+        self.image_path=self.abspath+self.image_name+file_ending
 
         # load the image as a 3-channel array
         # it needs to be colour for the mean shift filter to work
@@ -108,7 +108,8 @@ class PlateMeasurement(Treant):
         # Ugly, but ensures that all the arrays keep their names when saved to the file.
         # Note that without compression the files are only 10Kb, which is << the size of the images
         # so there is no point compressing them. No difference in timing.
-        numpy.savez(self.abspath+self.image_name+file_ending,   well_index=self.well_index,
+        numpy.savez(self.abspath+self.image_name+file_ending,
+                                well_index=self.well_index,
                                 well_radii=self.well_radii,
                                 well_centre=self.well_centre,
                                 well_top_left=self.well_top_left,
