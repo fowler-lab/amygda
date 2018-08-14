@@ -1,8 +1,9 @@
 from setuptools import setup
+from amygda import __version__
 
 setup(
     name='amygda',
-    version='1.1.0',
+    version=__version__,
     author='Philip W Fowler',
     scripts=['bin/analyse-plate-with-amygda.py'],
     packages=['amygda'],
