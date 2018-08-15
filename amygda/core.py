@@ -27,7 +27,7 @@ class PlateMeasurement(Treant):
     _treanttype='PlateMeasurement'
     _backendclass = PlateMeasurementFile
 
-    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='CRyPTIC1-V1',pixel_intensities=False):
+    def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='UKMYC5',pixel_intensities=False):
 
         Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
 
@@ -624,10 +624,10 @@ class PlateMeasurement(Treant):
             if number_of_circles>=self.number_of_wells:
                 break
             elif number_of_circles>self.number_of_wells:
-                print(self.image_path+": "+str(number_of_circles)+" circles found, this is more than the expected number of "+str(self.number_of_wells))
+                # print(self.image_path+": "+str(number_of_circles)+" circles found, this is more than the expected number of "+str(self.number_of_wells))
                 break
             elif radius_multiplier>2:
-                print(self.image_path+": "+"reached maximum radius multiplier of 2 and found "+str(number_of_circles)+" circles, giving up")
+                # print(self.image_path+": "+"reached maximum radius multiplier of 2 and found "+str(number_of_circles)+" circles, giving up")
                 break
             else:
                 radius_multiplier+=radius_tolerance
