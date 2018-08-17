@@ -68,6 +68,9 @@ class PlateMeasurement(Treant):
         # determine the dimensions of the image
         self.image_dimensions=self.image.shape
 
+        # calculate a float scaling factor assuming a standard image has 1000 pixels in the x dimension
+        self.scaling_factor=self.image_dimensions[1]/1000.
+
         # create numpy arrays to store details about the wells
         self.well_index = numpy.zeros(self.well_dimensions)
         self.well_radii = numpy.zeros(self.well_dimensions)
@@ -102,6 +105,26 @@ class PlateMeasurement(Treant):
             for i in range(self.well_dimensions[0]):
                 for j in range(self.well_dimensions[1]):
                     self.well_pixel_intensities[(i,j)]=[]
+
+    def _scale_value(self,value):
+        ''' Return a number scaled according to the size of the image.
+
+        Most of the images used to develop this code have dimensions ca. 1000x660 since they were all captured using a Thermo Fisher Vizion instrument.
+        This cannot be assumed, and therefore all relative coordinates have to be scaled according to the size of the image being processed. For example,
+        if an image was 2000x1220 in size, then all linewidths and coordinate steps should be doubled.
+
+        Args:
+            value (int/float): a numerical value to adjust
+            integer (bool=False): whether the numerical value is an integer, in which case the result will be rounded
+
+        Returns:
+            a number scaled according to the dimensions of the image
+        '''
+        if isinstance(value,int):
+            return round(self.scaling_factor*value)
+        else:
+            return self.scaling_factor*value
+
 
     def save_arrays(self,file_ending):
         """ Save the numpy arrays with the well coordinates and growth etc in a single NPZ file.
@@ -322,8 +345,8 @@ class PlateMeasurement(Treant):
 
                 (a,b) = (int(self.well_centre[(iy,ix)][0]),int(self.well_centre[(iy,ix)][1]))
 
-                cv2.putText(self.image, label1, (a-15,b-20), cv2.FONT_HERSHEY_SIMPLEX, fontsize, color, fontemphasis)
-                cv2.putText(self.image, label2, (a-15,b+30), cv2.FONT_HERSHEY_SIMPLEX, fontsize, color, fontemphasis)
+                cv2.putText(self.image, label1, (a-round(15*self.scaling_factor),b-round(20*self.scaling_factor)), cv2.FONT_HERSHEY_SIMPLEX, self.scaling_factor*fontsize, color, fontemphasis)
+                cv2.putText(self.image, label2, (a-round(15*self.scaling_factor),b+round(30*self.scaling_factor)), cv2.FONT_HERSHEY_SIMPLEX, self.scaling_factor*fontsize, color, fontemphasis)
 
 
     def annotate_well_analysed_region(self,growth_color=(0,0,0),region=0.4,thickness=1): #,threshold_percentage=3,sensitivity=0):

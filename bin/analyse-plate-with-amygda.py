@@ -22,7 +22,9 @@ for i in cols[1:-1]:
     image_path+=i
     image_path+="/"
 
-# create a new the measurement
+print(image_path)
+
+# create a new measurement
 plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False)
 
 # create the path for the output images
