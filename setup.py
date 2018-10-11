@@ -5,10 +5,9 @@ setup(
     name='amygda',
     version=__version__,
     author='Philip W Fowler',
-    author_email='philip.fowler@ndm.ox.ac.uk',
-    url='http://fowlerlab.org/software/amygda/',
     scripts=['bin/analyse-plate-with-amygda.py'],
     packages=['amygda'],
+    package_data={'':['../config/*']},
     install_requires=[
         "numpy >= 1.13",
         "datreant.core >= 0.7",
