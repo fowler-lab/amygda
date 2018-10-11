@@ -15,14 +15,18 @@ parser.add_argument("--file_ending",default="-raw",type=str,help="the ending of 
 options = parser.parse_args()
 
 # parse the path to the input image and work out its stem of
-cols=options.image.split('/')
-image_name=cols[-1].split(options.file_ending)[0]
-image_path=cols[0]+"/"
-for i in cols[1:-1]:
-    image_path+=i
-    image_path+="/"
+if '/' in options.image:
+    cols=options.image.split('/')
+    image_name=cols[-1].split(options.file_ending)[0]
+    image_path=cols[0]+"/"
+    for i in cols[1:-1]:
+        image_path+=i
+        image_path+="/"
+else:
+    image_path="."
+    image_name=options.image.split(options.file_ending)[0]
 
-print(image_path)
+print(image_path, image_name)
 
 # create a new measurement
 plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False)

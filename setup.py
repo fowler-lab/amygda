@@ -5,6 +5,8 @@ setup(
     name='amygda',
     version=__version__,
     author='Philip W Fowler',
+    author_email='philip.fowler@ndm.ox.ac.uk',
+    url='http://fowlerlab.org/software/amygda/',
     scripts=['bin/analyse-plate-with-amygda.py'],
     packages=['amygda'],
     install_requires=[
