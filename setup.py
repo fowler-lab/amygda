@@ -17,4 +17,5 @@ setup(
     ],
     license='University of Oxford (see LICENCE.md)',
     long_description=open('README.md').read(),
+    zip_safe=False
 )
