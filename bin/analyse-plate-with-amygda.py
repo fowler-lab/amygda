@@ -26,8 +26,6 @@ else:
     image_path="."
     image_name=options.image.split(options.file_ending)[0]
 
-print(image_path, image_name)
-
 # create a new measurement
 plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False)
 
