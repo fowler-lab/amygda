@@ -29,15 +29,15 @@ class PlateMeasurement(Treant):
 
     def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='UKMYC5',pixel_intensities=False):
 
-        Treant.__init__(self, plate_image, new=new, categories=categories, tags=tags)
+        Treant.__init__(self, plate_image, categories=categories, tags=tags)
 
         # store the image name provided in the categories, if there is one
         if 'ImageFileName' in self.categories.keys():
             self.image_name=self.categories['ImageFileName']
         elif 'IMAGEFILENAME' in self.categories.keys():
             self.image_name=self.categories['IMAGEFILENAME']
-        else:
-            self.image_name=None
+        # else:
+        #     self.image_name=None
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
@@ -478,13 +478,13 @@ class PlateMeasurement(Treant):
         self.categories['IM_POS_AVERAGE']=float("%.2f" % (positive_control_growth_total/self.well_positive_controls_number))
 
         # reset all the image processing fields
-        for drug in self.drug_names:
-            self.categories["IM_"+drug.upper()+"MIC"]=None
-            self.categories["IM_"+drug.upper()+"DILUTION"]=None
+        # for drug in self.drug_names:
+        #     self.categories["IM_"+drug.upper()+"MIC"]=None
+        #     self.categories["IM_"+drug.upper()+"DILUTION"]=None
 
         number_drugs_inconsistent_growth=0
 
-        self.categories["IM_DRUGS_INCONSISTENT_GROWTH"]=None
+        # self.categories["IM_DRUGS_INCONSISTENT_GROWTH"]=None
 
         # check what threshold we should be using
         if self.sensitivity==0:
@@ -569,10 +569,10 @@ class PlateMeasurement(Treant):
                 mic_dilution=-2
 
             # translate into text for storing in the treant
-            if mic_conc is None:
-                self.categories["IM_"+drug.upper()+"MIC"]=None
-                self.categories["IM_"+drug.upper()+"DILUTION"]=None
-            else:
+            if mic_conc is not None:
+            #     self.categories["IM_"+drug.upper()+"MIC"]=None
+            #     self.categories["IM_"+drug.upper()+"DILUTION"]=None
+            # else:
                 self.categories["IM_"+drug.upper()+"MIC"]=float(mic_conc)
                 self.categories["IM_"+drug.upper()+"DILUTION"]=int(mic_dilution)
 
