@@ -6,8 +6,8 @@ import cv2, numpy
 from scipy import stats
 import matplotlib.pyplot as plt
 
-from datreant.core import Treant
-from amygda.statefiles import PlateMeasurementFile
+from datreant import Treant
+# from amygda.statefiles import PlateMeasurementFile
 
 
 
@@ -25,7 +25,7 @@ class PlateMeasurement(Treant):
     """
 
     _treanttype='PlateMeasurement'
-    _backendclass = PlateMeasurementFile
+    # _backendclass = PlateMeasurementFile
 
     def __init__(self, plate_image, new=False, categories=None, tags=None, well_dimensions=(8,12), configuration_path='config', plate_design='UKMYC5',pixel_intensities=False):
 
