@@ -88,6 +88,9 @@ class PlateMeasurement(Treant):
         filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-dilution-matrix.txt")
         self.well_drug_dilution = numpy.loadtxt(filename,delimiter=',',dtype=int)
 
+        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-drug-orientation.txt")
+        self.well_drug_orientation = numpy.loadtxt(filename,delimiter=',',dtype=str)
+
         # identify the control wells
         self.well_positive_controls=[]
         for iy in range(0,self.well_dimensions[0]):
