@@ -36,8 +36,6 @@ class PlateMeasurement(Treant):
             self.image_name=self.categories['ImageFileName']
         elif 'IMAGEFILENAME' in self.categories.keys():
             self.image_name=self.categories['IMAGEFILENAME']
-        # else:
-        #     self.image_name=None
 
         # store the (rows,cols) of the plate
         self.well_dimensions=well_dimensions
@@ -88,9 +86,6 @@ class PlateMeasurement(Treant):
         filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-dilution-matrix.txt")
         self.well_drug_dilution = numpy.loadtxt(filename,delimiter=',',dtype=int)
 
-        filename = pkg_resources.resource_filename("amygda", self.configuration_path+"/"+self.plate_design+"-drug-orientation.txt")
-        self.well_drug_orientation = numpy.loadtxt(filename,delimiter=',',dtype=str)
-
         # identify the control wells
         self.well_positive_controls=[]
         for iy in range(0,self.well_dimensions[0]):
@@ -102,6 +97,23 @@ class PlateMeasurement(Treant):
 
         # create a list of the drug names
         self.drug_names=(numpy.unique(self.well_drug_name)).tolist()
+
+
+        self.drug_orientation={}
+        for drug in self.drug_names:
+            x=numpy.argwhere(self.well_drug_name==drug)
+            n_rows=len(numpy.unique(x[:,0]))
+            n_cols=len(numpy.unique(x[:,1]))
+            if n_rows==1 and n_cols>1:
+                self.drug_orientation[drug]='horizontal'
+            elif n_rows>1 and n_cols==1:
+                self.drug_orientation[drug]='vertical'
+            elif n_rows>1 and n_cols==2:
+                self.drug_orientation[drug]='l-shape'
+            elif n_rows==1 and n_cols==2:
+                self.drug_orientation[drug]='double-column'
+            else:
+                self.drug_orientation[drug]='odd'
 
         if self.pixel_intensities:
             self.well_pixel_intensities={}

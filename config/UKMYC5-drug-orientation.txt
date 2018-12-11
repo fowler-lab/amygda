@@ -1,8 +1,0 @@
-ver,hor,hor,hor,hor,hor,hor,hor,hor,hor,hor,hor
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,ver,odd,ver,ver,ver,ver,ver,ver,ver,ver,ver
-ver,odd,odd,ver,ver,ver,ver,ver,ver,ver,hor,hor

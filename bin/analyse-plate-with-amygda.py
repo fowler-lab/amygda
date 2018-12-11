@@ -11,6 +11,7 @@ parser.add_argument("--growth_percentage",default=2,type=float,help="if the cent
 parser.add_argument("--measured_region",default=0.5,type=float,help="the radius of the central measured circle, as a decimal proportion of the whole well (default=0.5).")
 parser.add_argument("--sensitivity",default=4,type=float,help="if the average growth in the control wells is more than (sensitivity x growth_percentage), then consider growth down to this sensitivity (default=4)")
 parser.add_argument("--file_ending",default="-raw",type=str,help="the ending of the input file that is stripped. Default is '-raw' ")
+parser.add_argument("--plate_design",default="UKMYC5",type=str,help="the name of the plate design. Must have a series of matching files in config/")
 # parser.add_argument("--pixel_intensities",action="store_true",help="calculate and store the measured pixel intensities in the centre of each well? Default is False")
 options = parser.parse_args()
 
@@ -26,8 +27,10 @@ else:
     image_path="."
     image_name=options.image.split(options.file_ending)[0]
 
+assert options.plate_design in ['UKMYC5','UKMYC6'], "this plate design is not recognised"
+
 # create a new measurement
-plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False)
+plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False,plate_design=options.plate_design)
 
 # create the path for the output images
 plate_stem=plate.abspath+plate.image_name
