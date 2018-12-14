@@ -140,7 +140,6 @@ class PlateMeasurement(Treant):
         else:
             return self.scaling_factor*value
 
-
     def save_arrays(self,file_ending):
         """ Save the numpy arrays with the well coordinates and growth etc in a single NPZ file.
         """
@@ -259,7 +258,6 @@ class PlateMeasurement(Treant):
             line+=",%d,%d,%d" % (lower,mode,upper)
             print(line)
 
-
     def equalise_histograms_locally(self):
         """ Apply a Contrast Limited Adaptive Histogram Equalization filter.
 
@@ -362,7 +360,6 @@ class PlateMeasurement(Treant):
 
                 cv2.putText(self.image, label1, (a-round(15*self.scaling_factor),b-round(20*self.scaling_factor)), cv2.FONT_HERSHEY_SIMPLEX, self.scaling_factor*fontsize, color, fontemphasis)
                 cv2.putText(self.image, label2, (a-round(15*self.scaling_factor),b+round(30*self.scaling_factor)), cv2.FONT_HERSHEY_SIMPLEX, self.scaling_factor*fontsize, color, fontemphasis)
-
 
     def annotate_well_analysed_region(self,growth_color=(0,0,0),region=0.4,thickness=1): #,threshold_percentage=3,sensitivity=0):
         """ Draw coloured squares on the wells with detected bacterial growth.
