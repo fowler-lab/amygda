@@ -27,7 +27,7 @@ class PlateMeasurement(Treant):
     _treanttype='PlateMeasurement'
     # _backendclass = PlateMeasurementFile
 
-    def __init__(self, plate_image, new=False, categories=None, tags='PlateMeasurement', well_dimensions=(8,12), configuration_path='config', plate_design='UKMYC5',pixel_intensities=False):
+    def __init__(self, plate_image, new=False, categories=None, tags='PlateMeasurement', well_dimensions=(8,12), configuration_path='config', plate_design=None,pixel_intensities=False):
 
         Treant.__init__(self, plate_image, categories=categories, tags=tags)
 
@@ -109,11 +109,21 @@ class PlateMeasurement(Treant):
             elif n_rows>1 and n_cols==1:
                 self.drug_orientation[drug]='vertical'
             elif n_rows>1 and n_cols==2:
-                self.drug_orientation[drug]='l-shape'
+                cols=numpy.unique(x[:,1])
+                column0=(x[x[:,1]==cols[0]])
+                column1=(x[x[:,1]==cols[1]])
+                # look for the P-shape used for RIF on UKMYC6
+                if column0[0][0]==column1[0][0] and column0[1][0]==column1[1][0]:
+                    self.drug_orientation[drug]='P-shape'
+                # otherwise the backwards L used for EMB on UKMYC5
+                elif column0[0][-1]==column1[0][0]:
+                    self.drug_orientation[drug]='L-shape'
+                else:
+                    self.drug_orientation[drug]='unknown'
             elif n_rows==1 and n_cols==2:
                 self.drug_orientation[drug]='double-column'
             else:
-                self.drug_orientation[drug]='odd'
+                self.drug_orientation[drug]='unknown'
 
         if self.pixel_intensities:
             self.well_pixel_intensities={}
