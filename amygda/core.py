@@ -7,9 +7,6 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 from datreant import Treant
-# from amygda.statefiles import PlateMeasurementFile
-
-
 
 class PlateMeasurement(Treant):
 
@@ -25,7 +22,6 @@ class PlateMeasurement(Treant):
     """
 
     _treanttype='PlateMeasurement'
-    # _backendclass = PlateMeasurementFile
 
     def __init__(self, plate_image, new=False, categories=None, tags='PlateMeasurement', well_dimensions=(8,12), configuration_path='config', plate_design=None,pixel_intensities=False):
 
