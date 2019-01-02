@@ -177,11 +177,11 @@ The software is available subject to the terms of the attached academic-use lice
 
 AMyGDA is written to be agnostic to the particular design of plate, or even the number of wells on each plate. The concentration (or dilution) of drug in each well is defined by a series of plaintext files in
 
-	plate-configuration/
+	config/
 
-For example the drugs on the CRyPTIC1 V1 plate is defined within the
+For example the drugs on the UKMYC5 plate is defined within the
 
-	plate-configuration/CRyPTIC1-V1-drug-matrix.txt
+	config/UKMYC5-drug-matrix.txt
 
 file and looks like.
 
@@ -194,4 +194,4 @@ file and looks like.
 	BDQ,AMI,EMB,INH,LEV,MXF,DLM,LZD,CFZ,RIF,RFB,PAS
 	BDQ,EMB,EMB,INH,LEV,MXF,DLM,LZD,CFZ,RIF,POS,POS
 	
-Adding a new plate design is simply a matter of creating new files specifying the drug, concentration and dilution of each well. Note that changing the *number* of wells at present also involves specifying the well_dimensions when creating a PlateMeasurement object. Currently this defaults to (8,12) i.e. a 96-well plate in landscape orientation.
+Adding a new plate design is simply a matter of creating new files specifying the drug, concentration and dilution of each well. Note that changing the *number* of wells at present also involves specifying the well_dimensions when creating a PlateMeasurement object. Currently this defaults to (8,12) i.e. a 96-well plate in landscape orientation. As an example, the configuration files for the UKMYC6 plate, which is the successor to the UKMYC5 plate, are included although all the provided examples are of UKMYC5 plates.
