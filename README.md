@@ -12,7 +12,7 @@ This software was downloaded from [https://fowlerlab.org/software/amygda](https:
 
 philip.fowler@ndm.ox.ac.uk
 
-18 November 2018
+02 January 2019
 
 ## Citing
 
