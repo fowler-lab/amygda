@@ -19,8 +19,8 @@ philip.fowler@ndm.ox.ac.uk
 Please cite
 
 	Automated detection of bacterial growth on 96-well plates for high-throughput drug susceptibility testing of Mycobacterium tuberculosis
-	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Sarah Lehmann, Nikolay Molodtsov, Timothy M Walker, Esther Robinson, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
-	Microbiology (2018) in press; doi: https://doi.org/10.1099/mic.0.000733
+	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Sarah Lehmann, Nikolay Molodtsov, Timothy M Walker, Esther Robinson, Harald Hoffmann, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
+	Microbiology (2018) 164:1522-1530 doi: [https://doi.org/10.1099/mic.0.000733](https://doi.org/10.1099/mic.0.000733)
 
 ## Installation
 
@@ -62,9 +62,9 @@ You can find installation instructions [here](https://matplotlib.org/2.2.2/users
 
 - [`datreant`](http://datreant.readthedocs.io/en/latest/). This provides a neat way of storing and discovering metadata for each image using the native filesystem. It is not essential for the operation of `AMyGDA`, but the code would need re-factoring to remove this dependency. Again it can be installed using pip
 
-		$ pip install datreant.core  
+		$ pip install datreant 
 
-	Note that `datreant` works best if each image is containing within its own folder. `datreant` automatically stores all metadata associated with each image within a `JSON` file in the same location as the input file.
+	Note that `datreant` works best if each image is containing within its own folder. `datreant` automatically stores all metadata associated with each image within two `JSON` files in a hidden `.datreant` folder in the same location as the input file.
 
 ## Tutorial
 
@@ -94,15 +94,15 @@ To process and analyse a single image using the default settings is simply
 
 And should take no more than 10 seconds. No output is written to the terminal, instead you will find a series of new files have been written in the `samples-images/01` folder.
 
-	$ ls sample-images/01/
-	PlateMeasurement.0460f5d7-f3b2-45f7-9cdc-2bd407ba0790.json
+	$ ls -a sample-images/01/
+	.datreant/
 	image-01-arrays.npz
 	image-01-filtered.png
 	image-01-mics.txt
 	image-01-processed.png
 	image-01-raw.png
 
-* The `JSON` file contains all the MICs and other metadata about the plate and can be automatically discovered and read using the `datreant` module to make systematic analyses simpler.
+* The hidden `.datreant/` folder contains two `JSON` files. `categories.json` contains all the MICs and other metadata about the plate and both can be automatically discovered and read using the `datreant` module to make systematic analyses simpler.
 * `image-01-mics.txt` contains the same information as the `JSON` file but in a simpler format that is easier for humans to read.
 * `image-01-arrays.npz` contains a series of `numpy` arrays that specify e.g. the percentage growth in each well
 * `image-01-raw.png` is the original image of the plate.
@@ -157,7 +157,7 @@ To delete all the output files, thereby returning sample-images/ to its clean st
 	$ cd samples-images/
 
 	$ ls 01/
-	PlateMeasurement.1d6f5af8-6005-4bb9-93cc-3390cefebfe4.json image-01-mics.txt
+	image-01-mics.txt
 	image-01-arrays.npz                                        image-01-clahe.jpg
 	image-01-filtered.jpg                                      image-01-raw.png
 	image-01-growth.jpg					   image-01-msf.jpg
@@ -193,4 +193,5 @@ file and looks like.
 	BDQ,AMI,EMB,INH,LEV,MXF,DLM,LZD,CFZ,RIF,RFB,PAS
 	BDQ,AMI,EMB,INH,LEV,MXF,DLM,LZD,CFZ,RIF,RFB,PAS
 	BDQ,EMB,EMB,INH,LEV,MXF,DLM,LZD,CFZ,RIF,POS,POS
+	
 Adding a new plate design is simply a matter of creating new files specifying the drug, concentration and dilution of each well. Note that changing the *number* of wells at present also involves specifying the well_dimensions when creating a PlateMeasurement object. Currently this defaults to (8,12) i.e. a 96-well plate in landscape orientation.
