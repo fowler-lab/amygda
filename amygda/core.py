@@ -86,7 +86,7 @@ class PlateMeasurement(Treant):
         self.well_positive_controls=[]
         for iy in range(0,self.well_dimensions[0]):
             for ix in range (0,self.well_dimensions[1]):
-                if self.well_drug_conc[(iy,ix)]==0.0:
+                if self.well_drug_conc[(iy,ix)]==0.0 and self.well_drug_name[(iy,ix)]=="POS":
                     self.well_positive_controls.append((iy,ix))
 
         self.well_positive_controls_number=len(self.well_positive_controls)
@@ -397,7 +397,7 @@ class PlateMeasurement(Treant):
                 r=self.well_radii[(iy,ix)]*region
 
                 if self.well_growth[iy,ix]>growth_threshold_percentage:
-                    if self.categories["IM_POS1"] and self.categories["IM_POS2"]:
+                    if self.categories["IM_POS_GROWTH"]:
                         cv2.circle(self.image,(x,y),int(r),growth_color,thickness=thickness)
                         # cv2.rectangle(self.image,(int(x-r),int(y-r)),(int(x+r),int(y+r)),growth_color,thickness=thickness)
                     else:
