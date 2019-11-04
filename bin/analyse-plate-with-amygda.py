@@ -75,7 +75,7 @@ plate.categories['IM_IMAGE_FILTERED']=True
 plate.load_image("-filtered.jpg")
 
 # attempt to segment the wells
-if plate.identify_wells():
+if plate.identify_wells(hough_param1=20,hough_param2=25,radius_tolerance=0.005,verbose=False):
 
     plate.categories['IM_WELLS_IDENTIFIED']=True
 

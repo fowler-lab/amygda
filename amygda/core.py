@@ -613,7 +613,7 @@ class PlateMeasurement(Treant):
 
         OUTPUT.close()
 
-    def identify_wells(self,hough_param1=20,hough_param2=25,radius_tolerance=0.005):
+    def identify_wells(self,hough_param1=20,hough_param2=25,radius_tolerance=0.005,verbose=False):
         """ Using a Hough transform identify the wells.
 
         Only if the number of circles found is the same as the number of wells is True returned.
@@ -623,6 +623,7 @@ class PlateMeasurement(Treant):
                 the search, but makes it more likely it will 'miss' identifying the correct number of wells. default=0.005
             hough_param1 (int) and hough_param2 (int): for an explanation of these, please see the OpenCV documentation
                 e.g. https://docs.opencv.org/3.1.0/d4/d70/tutorial_hough_circle.html
+                e.g. https://dsp.stackexchange.com/questions/22648/in-opecv-function-hough-circles-how-does-parameter-1-and-2-affect-circle-detecti
         """
 
         # estimate the dimensions of the well
@@ -658,8 +659,14 @@ class PlateMeasurement(Treant):
                 # increase the range of radii that will be searched for
                 radius_multiplier+=radius_tolerance
 
+                if verbose:
+                    print("No circles, "+str(int(estimated_radius/radius_multiplier))+" < radius < "+str(int(estimated_radius*radius_multiplier)))
+
             # count how many circles there are
             number_of_circles=len(circles[0])
+
+            if verbose:
+                print(str(number_of_circles)+" circles, "+str(int(estimated_radius/radius_multiplier))+" < radius < "+str(int(estimated_radius*radius_multiplier)))
 
             # check to see if there are enough circles
             if number_of_circles>=self.number_of_wells:
@@ -674,6 +681,8 @@ class PlateMeasurement(Treant):
                 radius_multiplier+=radius_tolerance
 
         well_counter=0
+
+        one_circle_per_well=True
 
         # move along the wells in the x-direction (columns)
         for ix in range(0,self.well_dimensions[1]):
@@ -696,28 +705,32 @@ class PlateMeasurement(Treant):
                             number_of_circles_in_well+=1
                             circle=ic
 
-                if number_of_circles_in_well!=1:
-                    return False
+                if number_of_circles_in_well==1:
 
-                well_centre=(circle[0],circle[1])
-                well_radius=circle[2]
-                well_extent=1.2*well_radius
+                    well_centre=(circle[0],circle[1])
+                    well_radius=circle[2]
+                    well_extent=1.2*well_radius
 
-                x1=max(0,int(well_centre[0]-well_extent))
-                x2=min(self.image_dimensions[1],int(well_centre[0]+well_extent))
+                    x1=max(0,int(well_centre[0]-well_extent))
+                    x2=min(self.image_dimensions[1],int(well_centre[0]+well_extent))
 
-                y1=max(0,int(well_centre[1]-well_extent))
-                y2=min(self.image_dimensions[0],int(well_centre[1]+well_extent))
+                    y1=max(0,int(well_centre[1]-well_extent))
+                    y2=min(self.image_dimensions[0],int(well_centre[1]+well_extent))
 
-                self.well_index[iy,ix]=well_counter
-                self.well_centre[iy,ix] = well_centre
-                self.well_radii[iy,ix] = well_radius
-                self.well_top_left[iy,ix] = (x1,y1)
-                self.well_bottom_right[iy,ix] = (x2,y2)
+                    self.well_index[iy,ix]=well_counter
+                    self.well_centre[iy,ix] = well_centre
+                    self.well_radii[iy,ix] = well_radius
+                    self.well_top_left[iy,ix] = (x1,y1)
+                    self.well_bottom_right[iy,ix] = (x2,y2)
+                    well_counter+=1
+                else:
+                    if verbose:
+                        print(number_of_circles_in_well)
+                    one_circle_per_well=False
 
-                well_counter+=1
 
-        if well_counter==self.number_of_wells:
+
+        if well_counter==self.number_of_wells and one_circle_per_well:
             return True
         else:
             return False
