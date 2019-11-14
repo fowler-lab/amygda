@@ -59,6 +59,8 @@ class PlateMeasurement(Treant):
         # this is a colour image
         self.image_colour=True
 
+        print(type(self.image),self.image)
+
         # determine the dimensions of the image
         self.image_dimensions=self.image.shape
 
