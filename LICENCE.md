@@ -1,8 +1,8 @@
-These licence terms apply to all licences granted by THE CHANCELLOR, MASTERS AND SCHOLARS OF THE UNIVERSITY OF OXFORD whose administrative offices are at University Offices, Wellington Square, Oxford OX1 2JD, United Kingdom (the “University”) for use of Automated Mycobacterial Growth detection Algorithm (AMyGDA) (“the Software”) through this website [http://fowlerlab.org](http://fowlerlab.org) (the ”Website”).
+These licence terms apply to all licences granted by THE CHANCELLOR, MASTERS AND SCHOLARS OF THE UNIVERSITY OF OXFORD whose administrative offices are at University Offices, Wellington Square, Oxford OX1 2JD, United Kingdom (the “University”) for use of Automated Mycobacterial Growth detection Algorithm (AMyGDA) (“the Software”) through this website http://fowlerlab .org (the ”Website”).
 
-By providing your email address and downloading the Software through the Website, you (the “Licensee”) are confirming that you agree that your use of the Software is subject to these licence terms. In providing information for a user name and password you are confirming that you agree to your personal data being used in accordance with the University’s Privacy Policy [https://www.admin.ox.ac.uk/councilsec/compliance/dataprotection/privacypolicy/](https://www.admin.ox.ac.uk/councilsec/compliance/dataprotection/privacypolicy/).
+By downloading the Software through the Website, you (the “Licensee”) are confirming that you agree that your use of the Software is subject to these licence terms.
 
-PLEASE READ THESE LICENCE TERMS CAREFULLY BEFORE DOWNLOADING THE SOFTWARE THROUGH THIS WEBSITE.  IF YOU DO NOT AGREE TO THESE LICENCE TERMS YOU SHOULD NOT PROVIDE YOUR EMAIL ADDRESS AND REQUEST A DOWNLOAD.
+PLEASE READ THESE LICENCE TERMS CAREFULLY BEFORE DOWNLOADING THE SOFTWARE THROUGH THIS WEBSITE.  IF YOU DO NOT AGREE TO THESE LICENCE TERMS YOU SHOULD NOT REQUEST A DOWNLOAD.
 
 THE SOFTWARE IS INTENDED FOR USE BY ACADEMICS CARRYING OUT RESEARCH AND NOT FOR USE BY CONSUMERS OR COMMERCIAL BUSINESSES.
 
@@ -54,4 +54,4 @@ THE SOFTWARE IS INTENDED FOR USE BY ACADEMICS CARRYING OUT RESEARCH AND NOT FOR 
 
 3.3 Law and Jurisdiction – These licence terms and any disputes or claims arising out of or in connection with them shall be governed by, and construed in accordance with, the law of England. The Licensee irrevocably submits to the exclusive jurisdiction of the English courts for any dispute or claim that arises out of or in connection with these licence terms.
 
-If you are interested in using the Software commercially, please contact Oxford University Innovation Limited to negotiate a licence. Contact details are enquiries@innovation.ox.ac.uk quoting reference BMe/14654.
+If you are interested in using the Software commercially, please contact Oxford University Innovation Limited to negotiate a licence. Contact details are enquiries@innovation.ox.ac.uk quoting reference 14654.
