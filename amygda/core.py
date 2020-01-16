@@ -668,17 +668,17 @@ class PlateMeasurement(Treant):
             if verbose:
                 print(str(number_of_circles)+" circles, "+str(int(estimated_radius/radius_multiplier))+" < radius < "+str(int(estimated_radius*radius_multiplier)))
 
+            if radius_multiplier>2:
+                return(False)
+
             # check to see if there are enough circles
             if number_of_circles>=self.number_of_wells:
-                break
-            elif number_of_circles>self.number_of_wells:
-                # print(self.image_path+": "+str(number_of_circles)+" circles found, this is more than the expected number of "+str(self.number_of_wells))
-                break
-            elif radius_multiplier>2:
-                # print(self.image_path+": "+"reached maximum radius multiplier of 2 and found "+str(number_of_circles)+" circles, giving up")
-                break
-            else:
-                radius_multiplier+=radius_tolerance
+                if self._check_enough_wells(circles,estimate_well_x,estimate_well_y):
+                    return(True)
+
+            radius_multiplier+=radius_tolerance
+
+    def _check_enough_wells(self,circles,estimate_well_x,estimate_well_y,verbose=False):
 
         well_counter=0
 
@@ -691,10 +691,14 @@ class PlateMeasurement(Treant):
             for iy in range(0,self.well_dimensions[0]):
 
                 # calculate the bottom left and top right coordinates of the well
-                top_left=(int(ix*estimate_well_x), int(iy*estimate_well_y))
-                bottom_right=(int((ix+1)*estimate_well_x), int((iy+1)*estimate_well_y))
+                top_left=numpy.array((int(ix*estimate_well_x), int(iy*estimate_well_y)))
+                bottom_right=numpy.array((int((ix+1)*estimate_well_x), int((iy+1)*estimate_well_y)))
 
+                centre =  top_left + (bottom_right/2)
+
+                # print(ix,iy,top_left, bottom_right,centre)
                 number_of_circles_in_well=0
+                list_of_circles=[]
 
                 # loop over the list of identified wells
                 for ic in circles[0,]:
@@ -703,11 +707,21 @@ class PlateMeasurement(Treant):
                     if top_left[0] < ic[0] < bottom_right[0]:
                         if top_left[1] < ic[1] < bottom_right[1]:
                             number_of_circles_in_well+=1
-                            circle=ic
+                            list_of_circles.append(ic)
 
-                if number_of_circles_in_well==1:
+                if number_of_circles_in_well in [1,2,3]:
 
-                    well_centre=(circle[0],circle[1])
+                    distances=[]
+
+                    for i in list_of_circles:
+                        well_centre=numpy.array((i[0],i[1]))
+                        distances.append(numpy.linalg.norm(well_centre-centre))
+
+                    idx=distances.index(min(distances))
+
+                    circle=list_of_circles[idx]
+
+                    well_centre=numpy.array((circle[0],circle[1]))
                     well_radius=circle[2]
                     well_extent=1.2*well_radius
 
@@ -727,8 +741,6 @@ class PlateMeasurement(Treant):
                     if verbose:
                         print(number_of_circles_in_well)
                     one_circle_per_well=False
-
-
 
         if well_counter==self.number_of_wells and one_circle_per_well:
             return True
