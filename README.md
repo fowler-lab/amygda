@@ -17,7 +17,7 @@ philip.fowler@ndm.ox.ac.uk
 Please cite
 
 	Automated detection of bacterial growth on 96-well plates for high-throughput drug susceptibility testing of Mycobacterium tuberculosis
-	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Sarah Lehmann, Nikolay Molodtsov, Timothy M Walker, Esther Robinson, Harald Hoffmann, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
+	Philip W Fowler, Ana Luiza Gibertoni Cruz, Sarah J Hoosdally, Lisa Jarrett, Emanuele Borroni, Matteo Chiacchiaretta, Priti Rathod, Sarah Lehmann, Nikolay Molodtsov, Clara Grazian, Timothy M Walker, Esther Robinson, Harald Hoffmann, Timothy EA Peto, Daniela Maria M. Cirillo, E Grace Smith, Derrick W Crook
 	Microbiology (2018) 164:1522-1530 doi:10.1099/mic.0.000733
 
 ## Installation
