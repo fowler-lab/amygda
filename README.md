@@ -6,13 +6,11 @@ A [paper](https://doi.org/10.1099/mic.0.000733) describing the software and demo
 
 The development of this software was funded by the National Institute for Health Research (NIHR) Oxford Biomedical Research Centre (BRC) to aid the [CRyPTIC project](http://www.crypticproject.org).
 
-This software was downloaded from [https://fowlerlab.org/software/amygda](https://fowlerlab.org/software/amygda).
-
 **Philip W Fowler**
 
 philip.fowler@ndm.ox.ac.uk
 
-02 January 2019
+27 January 2020
 
 ## Citing
 
