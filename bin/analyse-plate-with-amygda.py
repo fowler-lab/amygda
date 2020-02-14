@@ -27,7 +27,7 @@ else:
     image_path="."
     image_name=options.image.split(options.file_ending)[0]
 
-assert options.plate_design in ['UKMYC5','UKMYC6','GPALL1F','CHNMCMM2'], "this plate design is not recognised"
+assert options.plate_design in ['UKMYC5','UKMYC6','GPALL1F','CHNMCMM2','LeeLab'], "this plate design is not recognised"
 
 # create a new measurement
 plate=amygda.PlateMeasurement(image_path,categories={'ImageFileName':image_name},configuration_path="config/",pixel_intensities=False,plate_design=options.plate_design)
