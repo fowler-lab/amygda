@@ -86,13 +86,13 @@ if plate.identify_wells(hough_param1=20,hough_param2=25,radius_tolerance=0.005,v
     plate.save_arrays("-arrays.npz")
 
     # draw circles around the wells
-    plate.annotate_well_circumference(color=pink,linewidth=2)
+    plate.annotate_well_circumference(color=black,linewidth=1)
 
     # write the drug and concentration
     plate.annotate_well_drugs_concs(color=black,fontsize=0.5)
 
     # add squares where the algorithm has detected growth
-    plate.annotate_well_analysed_region(growth_color=yellow,region=options.measured_region,thickness=3)
+    plate.annotate_well_analysed_region(growth_color=yellow,region=options.measured_region,thickness=2)
 
     # save the final image with wells with identified growth marked by red squares
     plate.save_image("-growth.jpg")

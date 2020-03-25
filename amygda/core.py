@@ -668,7 +668,7 @@ class PlateMeasurement(Treant):
             if verbose:
                 print(str(number_of_circles)+" circles, "+str(int(estimated_radius/radius_multiplier))+" < radius < "+str(int(estimated_radius*radius_multiplier)))
 
-            if radius_multiplier>2:
+            if radius_multiplier>2 or number_of_circles>500:
                 return(False)
 
             # check to see if there are enough circles
