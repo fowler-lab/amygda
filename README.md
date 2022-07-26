@@ -1,5 +1,5 @@
 [![Tests](https://github.com/fowler-lab/amygda/actions/workflows/tests.yaml/badge.svg)](https://github.com/fowler-lab/amygda/actions/workflows/tests.yaml)
-[![PyPI version](https://badge.fury.io/py/gpas.svg)](https://badge.fury.io/py/amygda)
+[![PyPI version](https://badge.fury.io/py/amygda.svg)](https://badge.fury.io/py/amygda)
 
 # Automated Mycobacterial Growth Detection Algorithm (AMyGDA)
 
