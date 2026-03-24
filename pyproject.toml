@@ -1,3 +1,93 @@
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "amygda"
+dynamic = ["version"]
+description = "Measure mycobacterial growth on antibiotic plates and infer MICs"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "University of Oxford License, see LICENCE.md" }
+authors = [
+  { name = "Philip W Fowler" },
+]
+keywords = [
+  "AMR",
+  "TB",
+  "clinical microbiology",
+  "minimum inhibitory concentration",
+  "image processing",
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: Other/Proprietary License",
+  "Operating System :: OS Independent",
+]
+dependencies = [
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "opencv-python>=4.8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.10",
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.5",
+]
+
+[project.urls]
+Homepage = "https://github.com/fowlerlab/amygda"
+
+[project.scripts]
+analyse-plate-with-amygda = "amygda.cli:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "B",
+  "UP",
+  "N",
+  "C4",
+  "SIM",
+  "W",
+]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["amygda", "tests"]
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["cv2", "matplotlib.*"]
+ignore_missing_imports = true
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "amygda.__version__" }
+
+[tool.setuptools.packages.find]
+include = ["amygda*"]
+
+[tool.setuptools.package-data]
+amygda = ["config/*.txt"]
