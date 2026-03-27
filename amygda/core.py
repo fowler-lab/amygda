@@ -272,30 +272,29 @@ class PlateMeasurement:
         self.well_bottom_right.fill(0)
         self.well_growth.fill(0.0)
 
-        layout = self._load_plate_layout()
-        self.well_drug_name = layout.drug_names
-        self.well_drug_conc = layout.concentrations
-        self.well_drug_dilution = layout.dilutions
-
-        self.well_positive_controls = []
-        for iy in range(self.well_dimensions[0]):
-            for ix in range(self.well_dimensions[1]):
-                if (
-                    self.well_drug_conc[iy, ix] == 0.0
-                    and self.well_drug_name[iy, ix] == "POS"
-                ):
-                    self.well_positive_controls.append((iy, ix))
-        self.well_positive_controls_number = len(self.well_positive_controls)
-
-        self.drug_names = np.unique(self.well_drug_name).tolist()
-        self.drug_orientation = self._infer_drug_orientation()
-
         if self.pixel_intensities:
             self.well_pixel_intensities = {
                 (i, j): []
                 for i in range(self.well_dimensions[0])
                 for j in range(self.well_dimensions[1])
             }
+
+    def initialize_plate_layout(self) -> None:
+        """Load plate layout metadata for commands that need drug information.
+
+        Returns
+        -------
+        None
+        """
+
+        layout = self._load_plate_layout()
+        self.well_drug_name = layout.drug_names
+        self.well_drug_conc = layout.concentrations
+        self.well_drug_dilution = layout.dilutions
+        self.well_positive_controls = self._find_positive_controls()
+        self.well_positive_controls_number = len(self.well_positive_controls)
+        self.drug_names = np.unique(self.well_drug_name).tolist()
+        self.drug_orientation = self._infer_drug_orientation()
 
     def _scale_value(self, value: int | float) -> int | float:
         """Scale a value relative to an image width of 1000 pixels.
@@ -352,6 +351,25 @@ class PlateMeasurement:
             with (self.base_path / f"{self.image_name}-pixels.pkl").open("wb") as handle:
                 pickle.dump(self.well_pixel_intensities, handle)
 
+    def save_segment_arrays(self, file_ending: str) -> None:
+        """Persist only the segmentation geometry to disk.
+
+        Parameters
+        ----------
+        file_ending : str
+            Output suffix for the saved ``.npz`` file.
+        """
+
+        output_path = self.base_path / f"{self.image_name}{file_ending}"
+        np.savez(
+            output_path,
+            well_index=self.well_index,
+            well_radii=self.well_radii,
+            well_centre=self.well_centre,
+            well_top_left=self.well_top_left,
+            well_bottom_right=self.well_bottom_right,
+        )
+
     def load_arrays(self, file_ending: str, pixel_intensities: bool = False) -> None:
         """Load previously saved analysis arrays from disk.
 
@@ -386,6 +404,23 @@ class PlateMeasurement:
         if pixel_intensities:
             with (self.base_path / f"{self.image_name}-pixels.pkl").open("rb") as handle:
                 self.well_pixel_intensities = pickle.load(handle)
+
+    def load_segment_arrays(self, file_ending: str) -> None:
+        """Load saved segmentation geometry from disk.
+
+        Parameters
+        ----------
+        file_ending : str
+            Input suffix for the saved ``.npz`` file.
+        """
+
+        npz_path = self.base_path / f"{self.image_name}{file_ending}"
+        with np.load(npz_path, allow_pickle=False) as npzfile:
+            self.well_index = npzfile["well_index"]
+            self.well_radii = npzfile["well_radii"]
+            self.well_centre = npzfile["well_centre"]
+            self.well_top_left = npzfile["well_top_left"]
+            self.well_bottom_right = npzfile["well_bottom_right"]
 
     def mean_shift_filter(self, spatial_radius: int = 10, colour_radius: int = 10) -> None:
         """Apply a mean-shift filter to reduce local noise.
@@ -885,9 +920,7 @@ class PlateMeasurement:
         """
 
         image_name = str(self.image_name)
-        if file_ending and (
-            image_name.endswith(file_ending) or image_name.endswith(Path(file_ending).suffix)
-        ):
+        if file_ending and image_name.endswith(file_ending):
             filename = image_name
         else:
             filename = f"{image_name}{file_ending}"

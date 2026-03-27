@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from amygda import PlateMeasurement, infer_mic
+from amygda.cli import main
 
 
 def test_scale_value_preserves_int_and_float_behavior(tmp_path: Path) -> None:
@@ -32,6 +33,7 @@ def test_load_image_populates_layout_metadata(tmp_path: Path) -> None:
         plate_design="UKMYC5",
     )
     plate.load_image("-raw.png")
+    plate.initialize_plate_layout()
 
     assert plate.image_dimensions == (80, 120, 3)
     assert plate.well_drug_name is not None
@@ -190,3 +192,78 @@ def test_legacy_arguments_emit_deprecation_warnings(tmp_path: Path) -> None:
             categories={"ImageFileName": "plate"},
             plate_design="UKMYC5",
         )
+
+
+def test_stage_commands_save_and_load_pipeline_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    image = np.full((120, 180, 3), 200, dtype=np.uint8)
+    image_path = tmp_path / "plate-raw.png"
+    assert cv2.imwrite(str(image_path), image)
+
+    def fake_identify_wells(self: PlateMeasurement, **_: object) -> bool:
+        self.well_centre[:] = (20, 20)
+        self.well_radii[:] = 8
+        return True
+
+    def fake_measure_growth(self: PlateMeasurement, **_: object) -> None:
+        self.well_growth[:] = 0.0
+        self.categories["IM_POS_GROWTH"] = True
+        self.categories["IM_POS_AVERAGE"] = 20.0
+        self.categories["IM_DRUGS_INCONSISTENT_GROWTH"] = 0
+        self.categories["IM_BDQMIC"] = 0.12
+        self.categories["IM_BDQDILUTION"] = 1
+
+    monkeypatch.setattr(PlateMeasurement, "identify_wells", fake_identify_wells)
+    monkeypatch.setattr(PlateMeasurement, "measure_growth", fake_measure_growth)
+
+    main(["filter", str(image_path)])
+    filtered_path = tmp_path / "plate-raw-filtered.png"
+    assert filtered_path.exists()
+
+    main(["segment", str(filtered_path)])
+    segmented_path = tmp_path / "plate-raw-segmented.png"
+    arrays_path = tmp_path / "plate-raw-segmented-arrays.npz"
+    assert segmented_path.exists()
+    assert arrays_path.exists()
+
+    main(["measure", str(segmented_path), "--plate_design", "UKMYC5"])
+    assert (tmp_path / "plate-raw-growth.png").exists()
+    assert (tmp_path / "plate-raw-growth-mics.txt").exists()
+
+
+def test_run_command_executes_full_pipeline(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    image = np.full((120, 180, 3), 200, dtype=np.uint8)
+    image_path = tmp_path / "plate-raw.png"
+    assert cv2.imwrite(str(image_path), image)
+
+    def fake_identify_wells(self: PlateMeasurement, **_: object) -> bool:
+        self.well_centre[:] = (20, 20)
+        self.well_radii[:] = 8
+        return True
+
+    def fake_measure_growth(self: PlateMeasurement, **_: object) -> None:
+        self.well_growth[:] = 0.0
+        self.categories["IM_POS_GROWTH"] = True
+        self.categories["IM_POS_AVERAGE"] = 20.0
+        self.categories["IM_DRUGS_INCONSISTENT_GROWTH"] = 0
+        self.categories["IM_BDQMIC"] = 0.12
+        self.categories["IM_BDQDILUTION"] = 1
+
+    monkeypatch.setattr(PlateMeasurement, "identify_wells", fake_identify_wells)
+    monkeypatch.setattr(PlateMeasurement, "measure_growth", fake_measure_growth)
+
+    main(["run", str(image_path), "--plate_design", "UKMYC5"])
+
+    assert (tmp_path / "plate-raw-filtered.png").exists()
+    assert (tmp_path / "plate-raw-segmented.png").exists()
+    assert (tmp_path / "plate-raw-segmented-arrays.npz").exists()
+    assert (tmp_path / "plate-raw-growth.png").exists()
+    assert (tmp_path / "plate-raw-growth-mics.txt").exists()
+
+
+def test_filter_parser_does_not_accept_plate_design() -> None:
+    with pytest.raises(SystemExit):
+        main(["filter", "plate.png", "--plate_design", "UKMYC5"])

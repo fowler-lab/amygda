@@ -46,7 +46,7 @@ dev = [
 Homepage = "https://github.com/fowlerlab/amygda"
 
 [project.scripts]
-analyse-plate-with-amygda = "amygda.cli:main"
+amygda = "amygda.cli:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -20,18 +20,31 @@ pip install -e .[dev]
 ## Running the CLI
 
 ```bash
-analyse-plate-with-amygda --image examples/sample-images/01/image-01-raw.png
+amygda run examples/sample-images/01/image-01-raw.png
 ```
+
+Subcommands:
+
+- `amygda filter IMAGE`
+- `amygda segment IMAGE`
+- `amygda measure IMAGE`
+- `amygda run IMAGE`
 
 Useful options:
 
-- `--plate_design UKMYC5`
+- `measure` and `run` accept `--plate_design UKMYC5`
 - `--growth_pixel_threshold 130`
 - `--growth_percentage 2`
 - `--measured_region 0.5`
 - `--sensitivity 4`
 
-The command writes filtered images, detected growth overlays, MIC summaries, and saved arrays next to the input image.
+Stage outputs:
+
+- `filter` reads the exact image you pass and writes an image with `-filtered` appended to the stem
+- `segment` reads the exact image you pass and writes an image with `-segmented` appended to the stem, plus a matching `-arrays.npz`
+- `measure` reads the exact image you pass, loads the matching `-arrays.npz`, and writes an image with `-growth` appended to the stem
+- existing stage suffixes are replaced rather than accumulated, so segmenting `image-filtered.png` produces `image-segmented.png`
+- `run` executes all three stages in sequence in memory, producing `*-filtered`, `*-segmented`, and `*-growth`
 
 ## Library usage
 
