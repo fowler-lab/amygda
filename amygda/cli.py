@@ -192,8 +192,9 @@ def run_segment_stage(
     output_info = image_info.with_stage("segmented")
     plate.image_name = output_info.stem
     plate.save_segment_arrays("-arrays.npz")
-    plate.annotate_well_circumference(color=PINK, linewidth=2)
-    plate.save_image(output_info.suffix)
+    if options.save_segmented_image:
+        plate.annotate_well_circumference(color=PINK, linewidth=2)
+        plate.save_image(output_info.suffix)
     return output_info
 
 
@@ -225,7 +226,10 @@ def run_measure_stage(
 
     if not reuse_loaded_state:
         plate.load_image(image_info.suffix)
+        segment_info = image_info.with_stage("segmented")
+        plate.image_name = segment_info.stem
         plate.load_segment_arrays("-arrays.npz")
+        plate.image_name = image_info.stem
 
     plate.initialize_plate_layout()
 
@@ -409,6 +413,11 @@ def _add_segment_arguments(parser: argparse.ArgumentParser) -> None:
         "--verbose",
         action="store_true",
         help="Print progress while identifying wells.",
+    )
+    parser.add_argument(
+        "--save-segmented-image",
+        action="store_true",
+        help="Write the optional segmented overlay image.",
     )
 
 

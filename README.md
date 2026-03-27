@@ -41,10 +41,10 @@ Useful options:
 Stage outputs:
 
 - `filter` reads the exact image you pass and writes an image with `-filtered` appended to the stem
-- `segment` reads the exact image you pass and writes an image with `-segmented` appended to the stem, plus a matching `-arrays.npz`
+- `segment` reads the exact image you pass, writes a matching `-arrays.npz`, and only writes `-segmented` if you pass `--save-segmented-image`
 - `measure` reads the exact image you pass, loads the matching `-arrays.npz`, and writes an image with `-growth` appended to the stem
 - existing stage suffixes are replaced rather than accumulated, so segmenting `image-filtered.png` produces `image-segmented.png`
-- `run` executes all three stages in sequence in memory, producing `*-filtered`, `*-segmented`, and `*-growth`
+- `run` executes all three stages in sequence in memory, producing `*-filtered`, `*-growth`, and the segmentation arrays, with `*-segmented` only if `--save-segmented-image` is supplied
 
 ## Library usage
 

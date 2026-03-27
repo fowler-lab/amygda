@@ -221,7 +221,7 @@ def test_stage_commands_save_and_load_pipeline_outputs(
     filtered_path = tmp_path / "plate-raw-filtered.png"
     assert filtered_path.exists()
 
-    main(["segment", str(filtered_path)])
+    main(["segment", str(filtered_path), "--save-segmented-image"])
     segmented_path = tmp_path / "plate-raw-segmented.png"
     arrays_path = tmp_path / "plate-raw-segmented-arrays.npz"
     assert segmented_path.exists()
@@ -258,10 +258,10 @@ def test_run_command_executes_full_pipeline(
     main(["run", str(image_path), "--plate_design", "UKMYC5"])
 
     assert (tmp_path / "plate-raw-filtered.png").exists()
-    assert (tmp_path / "plate-raw-segmented.png").exists()
     assert (tmp_path / "plate-raw-segmented-arrays.npz").exists()
     assert (tmp_path / "plate-raw-growth.png").exists()
     assert (tmp_path / "plate-raw-growth-mics.txt").exists()
+    assert not (tmp_path / "plate-raw-segmented.png").exists()
 
 
 def test_filter_parser_does_not_accept_plate_design() -> None:
