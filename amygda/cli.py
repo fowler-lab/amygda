@@ -6,6 +6,9 @@ import argparse
 from collections.abc import Sequence
 from pathlib import Path
 
+import cv2
+import numpy as np
+
 from . import PlateMeasurement
 
 VALID_PLATE_DESIGNS = {
@@ -48,6 +51,22 @@ def build_parser() -> argparse.ArgumentParser:
     _add_plate_design_argument(measure_parser)
     _add_measure_arguments(measure_parser)
     measure_parser.set_defaults(handler=handle_measure)
+
+    strips_parser = subparsers.add_parser(
+        "strips",
+        help="Automatically save individual PNG panel images for each drug.",
+    )
+    _add_common_image_arguments(strips_parser)
+    _add_plate_design_argument(strips_parser)
+    strips_parser.set_defaults(handler=handle_save_strips)
+
+    panels_parser = subparsers.add_parser(
+        "panels",
+        help="Automatically save individual PNG panel images with positive controls.",
+    )
+    _add_common_image_arguments(panels_parser)
+    _add_plate_design_argument(panels_parser)
+    panels_parser.set_defaults(handler=handle_save_panels)
 
     run_parser = subparsers.add_parser(
         "run",
@@ -119,6 +138,46 @@ def handle_run(options: argparse.Namespace) -> None:
     filtered_info = run_filter_stage(plate, raw_info)
     segmented_info = run_segment_stage(plate, filtered_info, options, reuse_loaded_image=True)
     run_measure_stage(plate, segmented_info, options, reuse_loaded_state=True)
+
+
+def handle_save_strips(options: argparse.Namespace) -> None:
+    """Run the ``strips`` command.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        Parsed command-line arguments.
+    """
+
+    image_info = ImageInfo.from_path(options.image)
+    plate = _build_plate(image_info, options.plate_design)
+    plate.load_image(image_info.suffix)
+    segment_info = image_info.with_stage("segmented")
+    plate.image_name = segment_info.stem
+    plate.load_segment_arrays("-arrays.npz")
+    plate.image_name = image_info.stem
+    plate.initialize_plate_layout()
+    save_drug_images(plate, image_info, include_controls=False)
+
+
+def handle_save_panels(options: argparse.Namespace) -> None:
+    """Run the ``panels`` command.
+
+    Parameters
+    ----------
+    options : argparse.Namespace
+        Parsed command-line arguments.
+    """
+
+    image_info = ImageInfo.from_path(options.image)
+    plate = _build_plate(image_info, options.plate_design)
+    plate.load_image(image_info.suffix)
+    segment_info = image_info.with_stage("segmented")
+    plate.image_name = segment_info.stem
+    plate.load_segment_arrays("-arrays.npz")
+    plate.image_name = image_info.stem
+    plate.initialize_plate_layout()
+    save_drug_images(plate, image_info, include_controls=True)
 
 
 def run_filter_stage(plate: PlateMeasurement, image_info: ImageInfo) -> ImageInfo:
@@ -268,6 +327,51 @@ def main(argv: Sequence[str] | None = None) -> None:
     options.handler(options)
 
 
+def save_drug_images(
+    plate: PlateMeasurement, image_info: ImageInfo, *, include_controls: bool
+) -> None:
+    """Write one strip or panel image for each drug on the plate.
+
+    Parameters
+    ----------
+    plate : PlateMeasurement
+        Plate measurement with image, segment arrays, and layout loaded.
+    image_info : ImageInfo
+        Exact input image metadata.
+    include_controls : bool
+        Whether to prepend positive-control wells above each drug strip.
+    """
+
+    if plate.image is None:
+        raise RuntimeError("An image must be loaded before saving panels.")
+    if (
+        plate.well_drug_name is None
+        or plate.well_drug_conc is None
+        or plate.well_drug_dilution is None
+    ):
+        raise RuntimeError("Plate layout must be initialized before saving panels.")
+    well_drug_name = plate.well_drug_name
+    well_drug_conc = plate.well_drug_conc
+    control_panel = _build_positive_control_panel(plate) if include_controls else None
+
+    for drug in plate.drug_names:
+        if drug == "POS":
+            continue
+
+        positions = np.argwhere(well_drug_name == drug)
+        groups = _group_drug_positions(positions)
+        ordered_groups = sorted(
+            groups,
+            key=lambda group: float(np.min(well_drug_conc[group[:, 0], group[:, 1]])),
+        )
+        panels = [_extract_oriented_drug_panel(plate, group) for group in ordered_groups]
+        panel = _concatenate_panels_horizontally(panels)
+        if control_panel is not None:
+            panel = _stack_panels_vertically_left_aligned([control_panel, panel])
+        output_info = image_info.with_suffix_label(f"{drug.lower()}-panel")
+        cv2.imwrite(str(output_info.path), panel)
+
+
 class ImageInfo:
     """Exact input/output image naming information.
 
@@ -322,6 +426,34 @@ class ImageInfo:
 
         return ImageInfo(self.directory, f"{self.base_stem}-{stage}", self.suffix)
 
+    def with_suffix_label(self, label: str) -> ImageInfo:
+        """Return a new image info with a custom suffix label.
+
+        Parameters
+        ----------
+        label : str
+            Label appended to the canonical base stem.
+
+        Returns
+        -------
+        ImageInfo
+            Derived image metadata.
+        """
+
+        return ImageInfo(self.directory, f"{self.base_stem}-{label}", self.suffix)
+
+    @property
+    def path(self) -> Path:
+        """Return the concrete filesystem path for this image.
+
+        Returns
+        -------
+        pathlib.Path
+            Concrete file path.
+        """
+
+        return self.directory / f"{self.stem}{self.suffix}"
+
 
 def _build_plate(
     image_info: ImageInfo, plate_design: str | None = None
@@ -375,7 +507,10 @@ def _add_plate_design_argument(parser: argparse.ArgumentParser) -> None:
         "--plate_design",
         default="UKMYC5",
         choices=sorted(VALID_PLATE_DESIGNS),
-        help="Plate design to use for drug, concentration, and dilution maps",
+        help=(
+            "Plate design to use for drug, concentration, and dilution maps "
+            "(default: UKMYC5)"
+        ),
     )
 
 
@@ -479,6 +614,232 @@ def _strip_stage_suffix(stem: str) -> str:
         if stem.endswith(suffix):
             return stem[: -len(suffix)]
     return stem
+
+
+def _group_drug_positions(positions: np.ndarray) -> list[np.ndarray]:
+    """Group drug wells into strips for later rotation and concatenation.
+
+    Parameters
+    ----------
+    positions : numpy.ndarray
+        Array of ``(row, column)`` indices for wells belonging to one drug.
+
+    Returns
+    -------
+    list of numpy.ndarray
+        Position groups, typically one per occupied column when the drug spans
+        multiple columns.
+    """
+
+    unique_rows = np.unique(positions[:, 0])
+    unique_columns = np.unique(positions[:, 1])
+    if len(unique_rows) == 1 or len(unique_columns) == 1:
+        return [positions]
+    if len(unique_columns) > 1:
+        return [positions[positions[:, 1] == column] for column in unique_columns]
+    return [positions]
+
+
+def _extract_oriented_drug_panel(
+    plate: PlateMeasurement, positions: np.ndarray
+) -> np.ndarray:
+    """Extract and orient a drug strip so low concentration is on the left.
+
+    Parameters
+    ----------
+    plate : PlateMeasurement
+        Plate measurement with image, segmentation geometry, and layout loaded.
+    positions : numpy.ndarray
+        Array of ``(row, column)`` indices for one strip of drug wells.
+
+    Returns
+    -------
+    numpy.ndarray
+        Cropped and oriented drug panel.
+    """
+
+    image = plate.image
+    well_drug_conc = plate.well_drug_conc
+    assert image is not None
+    assert well_drug_conc is not None
+    top_left = plate.well_top_left[positions[:, 0], positions[:, 1]]
+    bottom_right = plate.well_bottom_right[positions[:, 0], positions[:, 1]]
+    x1 = int(np.min(top_left[:, 0]))
+    y1 = int(np.min(top_left[:, 1]))
+    x2 = int(np.max(bottom_right[:, 0]))
+    y2 = int(np.max(bottom_right[:, 1]))
+    panel = image[y1:y2, x1:x2]
+    centres = plate.well_centre[positions[:, 0], positions[:, 1]]
+    concentrations = well_drug_conc[positions[:, 0], positions[:, 1]]
+
+    x_span = float(np.max(centres[:, 0]) - np.min(centres[:, 0]))
+    y_span = float(np.max(centres[:, 1]) - np.min(centres[:, 1]))
+
+    if y_span > x_span:
+        top_index = int(np.argmin(centres[:, 1]))
+        bottom_index = int(np.argmax(centres[:, 1]))
+        if float(concentrations[top_index]) <= float(concentrations[bottom_index]):
+            panel = cv2.rotate(panel, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        else:
+            panel = cv2.rotate(panel, cv2.ROTATE_90_CLOCKWISE)
+    else:
+        left_index = int(np.argmin(centres[:, 0]))
+        right_index = int(np.argmax(centres[:, 0]))
+        if float(concentrations[left_index]) > float(concentrations[right_index]):
+            panel = cv2.flip(panel, 1)
+
+    if panel.ndim == 2:
+        panel = cv2.cvtColor(panel, cv2.COLOR_GRAY2BGR)
+    return panel
+
+
+def _concatenate_panels_horizontally(panels: list[np.ndarray]) -> np.ndarray:
+    """Join multiple oriented panels into one contiguous horizontal image.
+
+    Parameters
+    ----------
+    panels : list of numpy.ndarray
+        Oriented per-strip panels ordered from low to high concentration.
+
+    Returns
+    -------
+    numpy.ndarray
+        Combined horizontal panel image.
+    """
+
+    if not panels:
+        raise ValueError("At least one panel is required.")
+
+    max_height = max(panel.shape[0] for panel in panels)
+    total_width = sum(panel.shape[1] for panel in panels)
+    combined = np.full((max_height, total_width, 3), 255, dtype=np.uint8)
+
+    x_offset = 0
+    for panel in panels:
+        height, width = panel.shape[:2]
+        y_offset = (max_height - height) // 2
+        combined[y_offset : y_offset + height, x_offset : x_offset + width] = panel
+        x_offset += width
+    return combined
+
+
+def _build_positive_control_panel(plate: PlateMeasurement) -> np.ndarray:
+    """Build a horizontal positive-control strip.
+
+    Parameters
+    ----------
+    plate : PlateMeasurement
+        Plate measurement with layout and segmentation loaded.
+
+    Returns
+    -------
+    numpy.ndarray
+        Horizontal positive-control panel.
+    """
+
+    control_positions = np.array(plate.well_positive_controls, dtype=int)
+    if control_positions.size == 0:
+        raise RuntimeError("No positive control wells were found for this plate design.")
+
+    groups = _group_drug_positions(control_positions)
+    ordered_groups = sorted(groups, key=lambda group: int(np.min(group[:, 1])))
+    panels = [_extract_oriented_control_panel(plate, group) for group in ordered_groups]
+    return _add_border(_concatenate_panels_horizontally(panels))
+
+
+def _extract_oriented_control_panel(
+    plate: PlateMeasurement, positions: np.ndarray
+) -> np.ndarray:
+    """Extract and orient a positive-control strip horizontally.
+
+    Parameters
+    ----------
+    plate : PlateMeasurement
+        Plate measurement with image and segmentation geometry loaded.
+    positions : numpy.ndarray
+        Array of ``(row, column)`` indices for one positive-control strip.
+
+    Returns
+    -------
+    numpy.ndarray
+        Cropped and oriented positive-control panel.
+    """
+
+    image = plate.image
+    assert image is not None
+    top_left = plate.well_top_left[positions[:, 0], positions[:, 1]]
+    bottom_right = plate.well_bottom_right[positions[:, 0], positions[:, 1]]
+    x1 = int(np.min(top_left[:, 0]))
+    y1 = int(np.min(top_left[:, 1]))
+    x2 = int(np.max(bottom_right[:, 0]))
+    y2 = int(np.max(bottom_right[:, 1]))
+    panel = image[y1:y2, x1:x2]
+    centres = plate.well_centre[positions[:, 0], positions[:, 1]]
+
+    x_span = float(np.max(centres[:, 0]) - np.min(centres[:, 0]))
+    y_span = float(np.max(centres[:, 1]) - np.min(centres[:, 1]))
+    if y_span > x_span:
+        panel = cv2.rotate(panel, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    if panel.ndim == 2:
+        panel = cv2.cvtColor(panel, cv2.COLOR_GRAY2BGR)
+    return panel
+
+
+def _stack_panels_vertically_left_aligned(panels: list[np.ndarray]) -> np.ndarray:
+    """Stack panels vertically with left edges aligned.
+
+    Parameters
+    ----------
+    panels : list of numpy.ndarray
+        Panels ordered from top to bottom.
+
+    Returns
+    -------
+    numpy.ndarray
+        Combined vertical panel image.
+    """
+
+    if not panels:
+        raise ValueError("At least one panel is required.")
+
+    max_width = max(panel.shape[1] for panel in panels)
+    total_height = sum(panel.shape[0] for panel in panels)
+    combined = np.full((total_height, max_width, 3), 255, dtype=np.uint8)
+
+    y_offset = 0
+    for panel in panels:
+        height, width = panel.shape[:2]
+        combined[y_offset : y_offset + height, :width] = panel
+        y_offset += height
+    return combined
+
+
+def _add_border(panel: np.ndarray, thickness: int = 1) -> np.ndarray:
+    """Add a thin black border around a panel image.
+
+    Parameters
+    ----------
+    panel : numpy.ndarray
+        Panel image to decorate.
+    thickness : int, default=1
+        Border thickness in pixels.
+
+    Returns
+    -------
+    numpy.ndarray
+        Bordered panel image.
+    """
+
+    bordered = panel.copy()
+    cv2.rectangle(
+        bordered,
+        (0, 0),
+        (bordered.shape[1] - 1, bordered.shape[0] - 1),
+        (0, 0, 0),
+        thickness=thickness,
+    )
+    return bordered
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from amygda import PlateMeasurement, infer_mic
-from amygda.cli import main
+from amygda.cli import _group_drug_positions, main
 
 
 def test_scale_value_preserves_int_and_float_behavior(tmp_path: Path) -> None:
@@ -267,3 +267,132 @@ def test_run_command_executes_full_pipeline(
 def test_filter_parser_does_not_accept_plate_design() -> None:
     with pytest.raises(SystemExit):
         main(["filter", "plate.png", "--plate_design", "UKMYC5"])
+
+
+def test_group_drug_positions_keeps_single_row_strip_together() -> None:
+    positions = np.array([[0, 1], [0, 2], [0, 3], [0, 4]], dtype=int)
+    groups = _group_drug_positions(positions)
+
+    assert len(groups) == 1
+    assert np.array_equal(groups[0], positions)
+
+
+def test_save_panels_writes_low_to_high_drug_panels(tmp_path: Path) -> None:
+    rows, cols = 8, 12
+    cell_height = 20
+    cell_width = 20
+    image = np.full((rows * cell_height, cols * cell_width, 3), 255, dtype=np.uint8)
+    filtered_path = tmp_path / "plate-filtered.png"
+    assert cv2.imwrite(str(filtered_path), image)
+
+    plate = PlateMeasurement(
+        tmp_path,
+        categories={"ImageFileName": "plate-filtered"},
+        plate_design="UKMYC6",
+    )
+    plate.load_image(".png")
+    plate.initialize_plate_layout()
+    assert plate.well_drug_name is not None
+    assert plate.well_drug_conc is not None
+    assert plate.well_drug_dilution is not None
+    assert plate.image is not None
+
+    target_drug = "RIF"
+    drug_positions = np.argwhere(plate.well_drug_name == target_drug)
+    ranked_concs = sorted(
+        {float(plate.well_drug_conc[row, col]) for row, col in drug_positions.tolist()}
+    )
+    intensity_map = {conc: 30 + (index * 20) for index, conc in enumerate(ranked_concs)}
+    for row in range(rows):
+        for col in range(cols):
+            x1 = col * cell_width
+            y1 = row * cell_height
+            x2 = x1 + cell_width
+            y2 = y1 + cell_height
+            plate.well_top_left[row, col] = (x1, y1)
+            plate.well_bottom_right[row, col] = (x2, y2)
+            plate.well_centre[row, col] = ((x1 + x2) // 2, (y1 + y2) // 2)
+            plate.well_radii[row, col] = cell_width // 2
+            intensity = 220
+            if plate.well_drug_name[row, col] == target_drug:
+                intensity = intensity_map[float(plate.well_drug_conc[row, col])]
+            plate.image[y1:y2, x1:x2] = intensity
+
+    plate.image_name = "plate-segmented"
+    plate.save_segment_arrays("-arrays.npz")
+    assert cv2.imwrite(str(filtered_path), plate.image)
+
+    main(["strips", str(filtered_path), "--plate_design", "UKMYC6"])
+
+    panel_path = tmp_path / f"plate-{target_drug.lower()}-panel.png"
+    assert panel_path.exists()
+
+    panel = cv2.imread(str(panel_path), cv2.IMREAD_GRAYSCALE)
+    assert panel is not None
+    assert panel.shape[1] > panel.shape[0]
+    left_mean = float(panel[:, : cell_width].mean())
+    right_mean = float(panel[:, -cell_width:].mean())
+    assert left_mean < right_mean
+
+
+def test_panels_include_positive_controls_above_drug_strip(tmp_path: Path) -> None:
+    rows, cols = 8, 12
+    cell_height = 20
+    cell_width = 20
+    image = np.full((rows * cell_height, cols * cell_width, 3), 255, dtype=np.uint8)
+    filtered_path = tmp_path / "plate-filtered.png"
+    assert cv2.imwrite(str(filtered_path), image)
+
+    plate = PlateMeasurement(
+        tmp_path,
+        categories={"ImageFileName": "plate-filtered"},
+        plate_design="UKMYC5",
+    )
+    plate.load_image(".png")
+    plate.initialize_plate_layout()
+    assert plate.well_drug_name is not None
+    assert plate.well_drug_conc is not None
+    assert plate.image is not None
+
+    target_drug = "RIF"
+    control_positions = np.array(plate.well_positive_controls, dtype=int)
+
+    for row in range(rows):
+        for col in range(cols):
+            x1 = col * cell_width
+            y1 = row * cell_height
+            x2 = x1 + cell_width
+            y2 = y1 + cell_height
+            plate.well_top_left[row, col] = (x1, y1)
+            plate.well_bottom_right[row, col] = (x2, y2)
+            plate.well_centre[row, col] = ((x1 + x2) // 2, (y1 + y2) // 2)
+            plate.well_radii[row, col] = cell_width // 2
+            intensity = 220
+            if plate.well_drug_name[row, col] == target_drug:
+                intensity = 100
+            plate.image[y1:y2, x1:x2] = intensity
+
+    for row, col in control_positions.tolist():
+        x1 = col * cell_width
+        y1 = row * cell_height
+        x2 = x1 + cell_width
+        y2 = y1 + cell_height
+        plate.image[y1:y2, x1:x2] = 40
+
+    plate.image_name = "plate-segmented"
+    plate.save_segment_arrays("-arrays.npz")
+    assert cv2.imwrite(str(filtered_path), plate.image)
+
+    main(["panels", str(filtered_path), "--plate_design", "UKMYC5"])
+
+    panel_path = tmp_path / "plate-rif-panel.png"
+    assert panel_path.exists()
+
+    panel = cv2.imread(str(panel_path), cv2.IMREAD_GRAYSCALE)
+    assert panel is not None
+    assert panel.shape[1] > panel.shape[0]
+    top_band_mean = float(panel[:cell_height, : 2 * cell_width].mean())
+    bottom_band_mean = float(panel[-cell_height:, :cell_width].mean())
+    assert top_band_mean < bottom_band_mean
+    assert panel[0, 0] == 0
+    assert panel[0, min(cell_width, panel.shape[1] - 1)] == 0

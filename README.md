@@ -29,6 +29,8 @@ Subcommands:
 - `amygda segment IMAGE`
 - `amygda measure IMAGE`
 - `amygda run IMAGE`
+- `amygda strips IMAGE`
+- `amygda panels IMAGE`
 
 Useful options:
 
@@ -43,6 +45,8 @@ Stage outputs:
 - `filter` reads the exact image you pass and writes an image with `-filtered` appended to the stem
 - `segment` reads the exact image you pass, writes a matching `-arrays.npz`, and only writes `-segmented` if you pass `--save-segmented-image`
 - `measure` reads the exact image you pass, loads the matching `-arrays.npz`, and writes an image with `-growth` appended to the stem
+- `strips` reads a filtered image plus the matching segmented arrays and automatically saves one horizontal `*-DRUG-panel.png` image per drug
+- `panels` does the same as `strips` but also includes the positive control wells above the drug strip, left-aligned, to help downstream machine-learning workflows
 - existing stage suffixes are replaced rather than accumulated, so segmenting `image-filtered.png` produces `image-segmented.png`
 - `run` executes all three stages in sequence in memory, producing `*-filtered`, `*-growth`, and the segmentation arrays, with `*-segmented` only if `--save-segmented-image` is supplied
 
