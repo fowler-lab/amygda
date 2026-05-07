@@ -1,7 +1,6 @@
-#! /usr/bin/env python
+"""Public package interface for AMyGDA."""
 
-from .core import PlateMeasurement
+from .core import MicResult, PlateMeasurement, infer_mic
 
-# from .statefiles import PlateMeasurementFile
-
-__version__ = "1.3.2"
+__all__ = ["MicResult", "PlateMeasurement", "infer_mic"]
+__version__ = "2.0.0"
