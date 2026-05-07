@@ -7,6 +7,10 @@ AMyGDA analyses photographs of antibiotic-containing 96-well plates, estimates g
 
 A [paper](https://doi.org/10.1099/mic.0.000733) describing the software and demonstrating its reproducibility and accuracy is available in *Microbiology*.
 
+This is a major release and the CLI uses a proper verb structure so is different to earlier versions!
+
+AMyGDA has been used to analyse all images of all the 96-well plates from the [CRyPTIC project](https://crypticproject.info); each was inoculated with a sample of *M. tuberculosis* and incubated for two weeks. Where possible, a minimum inhibitory concentration (MIC) for each drug was estimated -- these are referred to as `AMYGDA_DILUTION` in the `UKMYC_PHENOTYPES` table in the [current release](https://zenodo.org/records/15680920) (v3.4.0) of the CRyPTIC datatables which are freely available on Zenodo. 
+
 ## Installation
 
 AMyGDA now uses modern Python packaging via `pyproject.toml`.
