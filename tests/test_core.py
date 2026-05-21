@@ -182,6 +182,29 @@ def test_identify_wells_finds_synthetic_grid(tmp_path: Path) -> None:
     assert np.count_nonzero(plate.well_radii) == 6
 
 
+@pytest.mark.parametrize(
+    ("design", "expected_pos_count"),
+    [
+        ("EUST2", 2),
+        ("EUSTAPF", 3),
+    ],
+)
+def test_initialize_plate_layout_for_new_designs(
+    tmp_path: Path, design: str, expected_pos_count: int
+) -> None:
+    plate = PlateMeasurement(
+        tmp_path,
+        categories={"ImageFileName": "plate"},
+        plate_design=design,
+    )
+    plate.initialize_plate_layout()
+
+    assert plate.well_drug_name is not None
+    assert plate.well_drug_name.shape == (8, 12)
+    assert plate.well_positive_controls_number == expected_pos_count
+    assert "POS" in plate.drug_names
+
+
 def test_legacy_arguments_emit_deprecation_warnings(tmp_path: Path) -> None:
     with pytest.deprecated_call():
         PlateMeasurement(
