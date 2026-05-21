@@ -17,6 +17,8 @@ VALID_PLATE_DESIGNS = {
     "GPALL1F",
     "CHNMCMM2",
     "GB1ECSDP",
+    "EUST2",
+    "EUSTAPF",
 }
 
 PINK = (138, 41, 231)
@@ -41,12 +43,16 @@ def build_parser() -> argparse.ArgumentParser:
     _add_common_image_arguments(filter_parser)
     filter_parser.set_defaults(handler=handle_filter)
 
-    segment_parser = subparsers.add_parser("segment", help="Identify wells in an input image.")
+    segment_parser = subparsers.add_parser(
+        "segment", help="Identify wells in an input image."
+    )
     _add_common_image_arguments(segment_parser)
     _add_segment_arguments(segment_parser)
     segment_parser.set_defaults(handler=handle_segment)
 
-    measure_parser = subparsers.add_parser("measure", help="Measure growth from an input image.")
+    measure_parser = subparsers.add_parser(
+        "measure", help="Measure growth from an input image."
+    )
     _add_common_image_arguments(measure_parser)
     _add_plate_design_argument(measure_parser)
     _add_measure_arguments(measure_parser)
@@ -136,7 +142,9 @@ def handle_run(options: argparse.Namespace) -> None:
     plate = _build_plate(raw_info, options.plate_design)
 
     filtered_info = run_filter_stage(plate, raw_info)
-    segmented_info = run_segment_stage(plate, filtered_info, options, reuse_loaded_image=True)
+    segmented_info = run_segment_stage(
+        plate, filtered_info, options, reuse_loaded_image=True
+    )
     run_measure_stage(plate, segmented_info, options, reuse_loaded_state=True)
 
 
@@ -364,7 +372,9 @@ def save_drug_images(
             groups,
             key=lambda group: float(np.min(well_drug_conc[group[:, 0], group[:, 1]])),
         )
-        panels = [_extract_oriented_drug_panel(plate, group) for group in ordered_groups]
+        panels = [
+            _extract_oriented_drug_panel(plate, group) for group in ordered_groups
+        ]
         panel = _concatenate_panels_horizontally(panels)
         if control_panel is not None:
             panel = _stack_panels_vertically_left_aligned([control_panel, panel])
@@ -739,7 +749,9 @@ def _build_positive_control_panel(plate: PlateMeasurement) -> np.ndarray:
 
     control_positions = np.array(plate.well_positive_controls, dtype=int)
     if control_positions.size == 0:
-        raise RuntimeError("No positive control wells were found for this plate design.")
+        raise RuntimeError(
+            "No positive control wells were found for this plate design."
+        )
 
     groups = _group_drug_positions(control_positions)
     ordered_groups = sorted(groups, key=lambda group: int(np.min(group[:, 1])))
