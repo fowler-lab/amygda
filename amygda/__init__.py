@@ -3,4 +3,4 @@
 from .core import MicResult, PlateMeasurement, infer_mic
 
 __all__ = ["MicResult", "PlateMeasurement", "infer_mic"]
-__version__ = "2.1.1"
+__version__ = "2.1.0"
